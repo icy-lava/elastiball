@@ -16,7 +16,7 @@ BUILT_FILES:=$(GENERATED_LUA) $(COPIED_LUA)
 .PHONY: run build clean
 
 run: $(BUILT_FILES)
-	cd build && $(LOVE) .
+	cd build && $(LOVE) . --developer --display 2
 
 rebuild: clean build
 
