@@ -20,7 +20,7 @@ local record tiny
 		remove: function(self: World, ...: table): table...
 		
 		refresh: function(self: World)
-		update: function(self: World, dt: number, filter: SystemFilter)
+		update: function(self: World, dt: number, filter: function<T>(world: World, system: System<T>): boolean)
 		clearEntities: function(self: World)
 		
 		getEntityCount: function(self: World): integer
@@ -45,7 +45,7 @@ local record tiny
 	remove: function(world: World, ...: table): table...
 	
 	refresh: function(world: World)
-	update: function(world: World, dt: number, filter: SystemFilter)
+	update: function(world: World, dt: number, filter: function<T>(world: World, system: System<T>): boolean)
 	clearEntities: function(world: World)
 	
 	getEntityCount: function(world: World): integer

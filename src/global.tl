@@ -76,4 +76,5 @@ global vec2 = require 'brinevector'
 global roomy = require 'roomy'
 global scene = roomy.new()
 global tiny = require 'tiny'
+global util = require 'util'
 global filter = require 'system.filter'

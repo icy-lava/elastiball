@@ -8,13 +8,24 @@ function filter.vector(field: string): tiny.EntityFilter
 	end
 end
 
-function filter.type(field: string, typ: string): tiny.EntityFilter
+local enum Type
+	'number'
+	'boolean'
+	'string'
+	'nil'
+	'function'
+	'table'
+	'userdata'
+	'cdata'
+end
+
+function filter.type(field: string, typ: Type): tiny.EntityFilter
 	return function(_: tiny.System, entity: tiny.Entity): boolean
 		return type(entity[field]) == typ
 	end
 end
 
-function filter.typeOrNil(field: string, typ: string): tiny.EntityFilter
+function filter.typeOrNil(field: string, typ: Type): tiny.EntityFilter
 	return tiny.requireAny(filter.type(field, typ), filter.type(field, 'nil'))
 end
 

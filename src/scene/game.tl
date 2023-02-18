@@ -7,16 +7,24 @@ Game.__index = Game
 
 function Game:update(dt: number)
 	-- self.camera:setAngle(self.camera:getAngle() + dt)
-	self.world:update(dt)
+	self.world:update(dt, function(_: tiny.World, system: tiny.System<any>): boolean
+		return not (system as table).draw
+	end)
 end
 
 function Game:draw()
 	self.camera:attach(true)
 	love.graphics.clear(1, 0.5, 1, 1)
 	-- love.graphics.clear(true)
-	local pos = self.world.entities[1].pos as vec2
-	love.graphics.print('hello', pos.x, pos.y)
+	-- local pos = self.world.entities[1].pos as vec2
+	-- love.graphics.print('hello', pos.x, pos.y)
+	-- love.graphics.line(0.5, 0.5, 0.5, 100.5)
 	-- love.graphics.rectangle('line', 0, 0, 24, 11)
+	
+	self.world:update(0, function(_: tiny.World, system: tiny.System<any>): boolean
+		return not not (system as table).draw
+	end)
+	
 	self.camera:detach()
 end
 
@@ -47,9 +55,11 @@ function Game:enter()
 	
 	self.world = tiny.world()
 	self.world:addSystem(require 'system.velocity')
+	self.world:addSystem(require 'system.draw')
 	self.world:addEntity({
 		pos = vec2(),
-		lastPos = vec2(0, -1),
+		lastPos = vec2(0, -20 * FRAME_TIME),
+		lastDT = FRAME_TIME,
 	})
 	
 	self.world:refresh()

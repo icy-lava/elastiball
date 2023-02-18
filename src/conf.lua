@@ -85,7 +85,7 @@ function love.run()
 	if love.timer then love.timer.step() end
 
 	local dt = 0
-
+	love.graphics.setLineStyle 'rough'
 	-- Main loop time.
 	return function()
 		lastWidth, lastHeight = love.graphics.getDimensions()
@@ -103,16 +103,18 @@ function love.run()
 		end
 
 		-- Update dt, as we'll be passing it to update
-		if love.timer then dt = dt + love.timer.step() end
+		-- if love.timer then dt = dt + love.timer.step() end
+		dt = love.timer.step()
 		dt = math.min(dt, 0.1)
 
 		-- Call update and draw
-		if love.update then
-			while dt >= FRAME_TIME do
-				love.update(dt)
-				dt = dt - FRAME_TIME
-			end
-		end
+		-- if love.update then
+		-- 	while dt >= FRAME_TIME do
+		-- 		love.update(FRAME_TIME)
+		-- 		dt = dt - FRAME_TIME
+		-- 	end
+		-- end
+		love.update(dt)
 		
 		if love.graphics and love.graphics.isActive() then
 			love.graphics.origin()
