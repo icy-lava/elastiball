@@ -7,7 +7,7 @@ global FPS = 60
 global FRAME_TIME = 1 / FPS
 
 global jit: table
-local windows = jit.os == 'Windows'
+local windows = jit and jit.os == 'Windows' or false
 
 parser:help_max_width(120)
 parser:help_description_margin(30)

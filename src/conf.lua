@@ -1,5 +1,3 @@
-package.path = './lib/?.lua;./lib/init/?.lua;' .. package.path
-
 require 'global'
 
 function love.conf(t)
