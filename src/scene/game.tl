@@ -54,13 +54,33 @@ function Game:enter()
 	self.camera = cam11(0, 0, 1, 0, 0, 0, love.graphics.getWidth() as integer, love.graphics.getHeight() as integer)
 	
 	self.world = tiny.world()
+	
+	self.world:addSystem(require 'system.gravity')
 	self.world:addSystem(require 'system.velocity')
+	self.world:addSystem(require 'system.link')
 	self.world:addSystem(require 'system.draw')
-	self.world:addEntity({
+	
+	local a: table = {
 		pos = vec2(),
-		lastPos = vec2(0, -20 * FRAME_TIME),
-		lastDT = FRAME_TIME,
-	})
+		lastPos = vec2(),
+		-- lastDT = FRAME_TIME,
+	}
+	
+	local b: table = {
+		pos = vec2(100),
+		lastPos = vec2(100),
+		-- lastDT = FRAME_TIME,
+	}
+	
+	local link: table = {
+		linkA = a,
+		linkB = b,
+		distance = 500,
+	}
+	
+	self.world:addEntity(a)
+	self.world:addEntity(b)
+	self.world:addEntity(link)
 	
 	self.world:refresh()
 	

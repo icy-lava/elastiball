@@ -73,6 +73,8 @@ else
 end
 
 global vec2 = require 'brinevector'
+global GRAVITY = vec2(0, 2)
+
 global roomy = require 'roomy'
 global scene = roomy.new()
 global tiny = require 'tiny'
