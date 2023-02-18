@@ -1,11 +1,23 @@
 local record Game
 	camera: cam11.Camera
+	world: tiny.World
 	__index: Game
 end
 Game.__index = Game
 
 function Game:update(dt: number)
-	self.camera:setAngle(self.camera:getAngle() + dt)
+	-- self.camera:setAngle(self.camera:getAngle() + dt)
+	self.world:update(dt)
+end
+
+function Game:draw()
+	self.camera:attach(true)
+	love.graphics.clear(1, 0.5, 1, 1)
+	-- love.graphics.clear(true)
+	local pos = self.world.entities[1].pos as vec2
+	love.graphics.print('hello', pos.x, pos.y)
+	-- love.graphics.rectangle('line', 0, 0, 24, 11)
+	self.camera:detach()
 end
 
 function Game:resize(width: integer, height: integer)
@@ -30,20 +42,23 @@ function Game:resize(width: integer, height: integer)
 	self.camera:setViewport(x, y, fitWidth, fitHeight)
 end
 
-function Game:draw()
-	self.camera:attach(true)
-	love.graphics.clear(1, 0.5, 1, 1)
-	-- love.graphics.clear(true)
-	love.graphics.print('hello')
-	-- love.graphics.rectangle('line', 0, 0, 24, 11)
-	self.camera:detach()
+function Game:enter()
+	self.camera = cam11(0, 0, 1, 0, 0, 0, love.graphics.getWidth() as integer, love.graphics.getHeight() as integer)
+	
+	self.world = tiny.world()
+	self.world:addSystem(require 'system.velocity')
+	self.world:addEntity({
+		pos = vec2(),
+		lastPos = vec2(0, -1),
+	})
+	
+	self.world:refresh()
+	
+	self:resize(love.graphics.getDimensions() as (integer, integer))
 end
 
 function Game.new(): Game
-	local game: Game = setmetatable({}, Game)
-	game.camera = cam11(0, 0, 1, 0, 0, 0, love.graphics.getWidth() as integer, love.graphics.getHeight() as integer)
-	game:resize(love.graphics.getDimensions() as (integer, integer))
-	return game
+	return setmetatable({}, Game)
 end
 
 return Game

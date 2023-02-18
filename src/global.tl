@@ -62,7 +62,7 @@ local wantWidth = math.floor(wantHeight * WIDTH / HEIGHT + 0.5)
 cli.height = cli.height or math.floor(cli.width and (cli.width * wantHeight / wantWidth) or wantHeight)
 cli.width = cli.width or math.floor(cli.height * wantWidth / wantHeight)
 
-if cli.show_console then
+if cli.show_console and (love as table)._openConsole then
 	((love as table)._openConsole as function)()
 end
 
@@ -72,6 +72,8 @@ else
 	log.level = 'fatal'
 end
 
+global vec2 = require 'brinevector'
 global roomy = require 'roomy'
 global scene = roomy.new()
 global tiny = require 'tiny'
+global filter = require 'system.filter'
