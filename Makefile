@@ -1,7 +1,9 @@
 ifeq ($(OS),Windows_NT)
 LOVE:=lovec
+LOVE_JS:=$(shell busybox which love.js)
 else
 LOVE:=love
+LOVE_JS:=love.js
 endif
 
 # SOURCE_DIR:=$(shell luajit -e "print(require'tlconfig'.source_dir)")
@@ -13,16 +15,30 @@ LIB_LUA:=$(shell busybox find lib -type f | busybox grep "\.lua$$")
 
 GENERATED_LUA:=$(patsubst src/%.tl,build/raw/%.lua,$(SOURCE_TEAL))
 COPIED_LUA:=$(patsubst src/%.lua,build/raw/%.lua,$(SOURCE_LUA)) $(patsubst lib/%.lua,build/raw/%.lua,$(LIB_LUA))
-BUILT_FILES:=$(GENERATED_LUA) $(COPIED_LUA)
+COMPILED_FILES:=$(GENERATED_LUA) $(COPIED_LUA)
 
-.PHONY: run build clean
+ARTIFACT_LOVE:=build/game.love
+ARTIFACT_WEB:=build/game-web
 
-run: $(BUILT_FILES)
+.PHONY: run serve compile clean love web
+
+run: $(COMPILED_FILES)
 	cd build/raw && $(LOVE) . --developer --display 2
 
-rebuild: clean build
+serve: $(ARTIFACT_WEB)
+	cd build/game-web && python -m http.server --bind 127.0.0.1
 
-build: $(BUILT_FILES)
+compile: $(COMPILED_FILES)
+
+love: $(ARTIFACT_LOVE)
+$(ARTIFACT_LOVE): $(COMPILED_FILES)
+	busybox rm -f $(ARTIFACT_LOVE)
+	7z a -bd -tzip -mx0 -r $@ ./build/raw/*
+
+web: $(ARTIFACT_WEB)
+$(ARTIFACT_WEB): $(ARTIFACT_LOVE)
+	busybox rm -rf $(ARTIFACT_WEB)
+	"$(LOVE_JS)" -c -t game $< $@
 
 clean:
 	busybox rm -rf build/*
