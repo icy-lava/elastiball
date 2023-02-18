@@ -74,3 +74,4 @@ end
 
 global roomy = require 'roomy'
 global scene = roomy.new()
+global tiny = require 'tiny'

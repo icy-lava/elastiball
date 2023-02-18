@@ -16,11 +16,11 @@ function Game:resize(width: integer, height: integer)
 	local fitHeight: integer
 	
 	if fwch < fhcw then
-		fitWidth = math.floor((fwch + HEIGHT / 2) / HEIGHT + 0.5)
+		fitWidth = math.floor(fwch / HEIGHT + 0.5)
 		fitHeight = height
 	else
 		fitWidth = width
-		fitHeight = math.floor((fhcw + WIDTH / 2) / WIDTH + 0.5)
+		fitHeight = math.floor(fhcw / WIDTH + 0.5)
 	end
 	
 	local x = math.floor((width - fitWidth) / 2 + 0.5)

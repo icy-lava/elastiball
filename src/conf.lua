@@ -61,7 +61,6 @@ function love.keypressed(...)
 	local key = ...
 	if key == 'q' and love.keyboard.isDown('lctrl', 'rctrl') then
 		love.event.quit()
-		return
 	elseif key == 'f11' or (key == 'return' and love.keyboard.isDown('lalt', 'ralt')) then
 		love.window.setFullscreen(not love.window.getFullscreen())
 		love.event.push('resize', love.graphics.getDimensions())
