@@ -55,6 +55,7 @@ function Game:enter()
 	
 	self.world = tiny.world()
 	
+	self.world:addSystem(require 'system.input')
 	self.world:addSystem(require 'system.velocity')
 	self.world:addSystem(require 'system.gravity')
 	
@@ -72,6 +73,26 @@ function Game:enter()
 	
 	self.world:addSystem(require 'system.draw_link')
 	self.world:addSystem(require 'system.draw')
+	self.world:addSystem(require 'system.draw_player')
+	
+	local player: table = {
+		player = true,
+		pos = vec2(0, 0),
+		lastPos = vec2(0, 0),
+		input = baton.new {
+			controls = {
+				left = {'key:left', 'key:a', 'axis:leftx-', 'button:dpleft'},
+				right = {'key:right', 'key:d', 'axis:leftx+', 'button:dpright'},
+				up = {'key:up', 'key:w', 'axis:lefty-', 'button:dpup'},
+				down = {'key:down', 'key:s', 'axis:lefty+', 'button:dpdown'},
+				-- action = {'key:x', 'button:a'},
+			},
+			pairs = {
+				move = {'left', 'right', 'up', 'down'}
+			},
+			joystick = love.joystick.getJoysticks()[1],
+		}
+	}
 	
 	local a: table = {
 		pos = vec2(0, 0),
@@ -132,6 +153,8 @@ function Game:enter()
 		linkB = d,
 		distance = (200 ^ 2 + 200 ^ 2) ^ 0.5,
 	}
+	
+	self.world:addEntity(player)
 	
 	self.world:addEntity(a)
 	self.world:addEntity(b)

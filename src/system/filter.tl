@@ -29,4 +29,8 @@ function filter.typeOrNil(field: string, typ: Type): tiny.EntityFilter
 	return tiny.requireAny(filter.type(field, typ), filter.type(field, 'nil'))
 end
 
+function filter.has(field: string): tiny.EntityFilter
+	return tiny.rejectAny(filter.type(field, 'nil'))
+end
+
 return filter

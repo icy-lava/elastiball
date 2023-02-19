@@ -78,5 +78,7 @@ global GRAVITY = vec2(0, 100)
 global roomy = require 'roomy'
 global scene = roomy.new()
 global tiny = require 'tiny'
+global vivid = require 'vivid'
+global baton = require 'baton'
 global util = require 'util'
 global filter = require 'system.filter'
