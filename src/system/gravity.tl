@@ -13,7 +13,7 @@ system.filter = tiny.requireAll(
 )
 
 function system:process(entity: Entity, dt: number)
-	entity.lastPos = entity.lastPos - GRAVITY * dt
+	entity.pos = entity.pos + GRAVITY * dt * dt
 end
 
 return system

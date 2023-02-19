@@ -1,6 +1,6 @@
 ifeq ($(OS),Windows_NT)
 LOVE:=lovec
-LOVE_JS:=$(shell busybox which love.js)
+LOVE_JS:=$(shell busybox which love.js | busybox xargs basename)
 else
 LOVE:=love
 LOVE_JS:=love.js
@@ -11,10 +11,10 @@ endif
 SOURCE_LUA:=$(shell busybox find src -type f | busybox grep "\.lua$$")
 SOURCE_TEAL:=$(shell busybox find src -type f | busybox grep "\.tl$$" | busybox grep -v "\.d\.tl$$")
 
-LIB_LUA:=$(shell busybox find lib -type f | busybox grep "\.lua$$")
+LIBRARY_LUA:=$(shell busybox find lib -type f | busybox grep "\.lua$$")
 
 GENERATED_LUA:=$(patsubst src/%.tl,build/raw/%.lua,$(SOURCE_TEAL))
-COPIED_LUA:=$(patsubst src/%.lua,build/raw/%.lua,$(SOURCE_LUA)) $(patsubst lib/%.lua,build/raw/%.lua,$(LIB_LUA))
+COPIED_LUA:=$(patsubst src/%.lua,build/raw/%.lua,$(SOURCE_LUA)) $(patsubst lib/%.lua,build/raw/%.lua,$(LIBRARY_LUA))
 COMPILED_FILES:=$(GENERATED_LUA) $(COPIED_LUA)
 
 ARTIFACT_LOVE:=build/game.love
@@ -38,7 +38,7 @@ $(ARTIFACT_LOVE): $(COMPILED_FILES)
 web: $(ARTIFACT_WEB)
 $(ARTIFACT_WEB): $(ARTIFACT_LOVE)
 	busybox rm -rf $(ARTIFACT_WEB)
-	"$(LOVE_JS)" -c -t game $< $@
+	$(LOVE_JS) -c -t game $< $@
 
 clean:
 	busybox rm -rf build/*
@@ -51,6 +51,6 @@ build/raw/%.lua: lib/%.lua
 	busybox dirname $@ | busybox xargs mkdir -p
 	busybox cp $< $@
 
-$(GENERATED_LUA): $(SOURCE_TEAL)
+$(GENERATED_LUA): $(SOURCE_TEAL) tlconfig.lua
 	busybox mkdir -p build
 	tl build

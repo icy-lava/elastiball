@@ -3,7 +3,7 @@ local parser = argparse()
 
 global WIDTH = 1920
 global HEIGHT = 1080
-global FPS = 60
+global FPS = 240
 global FRAME_TIME = 1 / FPS
 
 global jit: table
@@ -73,7 +73,7 @@ else
 end
 
 global vec2 = require 'brinevector'
-global GRAVITY = vec2(0, 2)
+global GRAVITY = vec2(0, 100)
 
 global roomy = require 'roomy'
 global scene = roomy.new()

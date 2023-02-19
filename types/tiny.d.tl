@@ -62,7 +62,7 @@ local record tiny
 		modified: boolean
 		nocache: boolean
 		
-		update: function(self: System, dt: number)
+		update: function<E>(self: System<E>, dt: number)
 		filter: EntityFilter
 		onAdd: function<E>(self: System<E>, entity: E)
 		onRemove: function<E>(self: System<E>, entity: E)

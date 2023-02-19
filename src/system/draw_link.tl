@@ -1,10 +1,16 @@
-local record Entity
+local record Object
 	pos: vec2
+end
+
+local record Entity
+	linkA: Object
+	linkB: Object
+	distance: number
 end
 
 local system: tiny.System<Entity> = util.drawSystem()
 
-system.filter = filter.vector 'pos'
+system.filter = tiny.requireAll('linkA', 'linkB', 'distance')
 
 function system:preProcess(_: number)
 	love.graphics.push 'all'
@@ -12,8 +18,8 @@ function system:preProcess(_: number)
 end
 
 function system:process(entity: Entity, _: number)
-	local pos = entity.pos
-	love.graphics.circle('line', pos.x, pos.y, 10, 16)
+	local apos, bpos = entity.linkA.pos, entity.linkB.pos
+	love.graphics.line(apos.x, apos.y, bpos.x, bpos.y)
 end
 
 function system:postProcess(_: number)

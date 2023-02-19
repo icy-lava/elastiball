@@ -14,7 +14,7 @@ end
 
 function Game:draw()
 	self.camera:attach(true)
-	love.graphics.clear(1, 0.5, 1, 1)
+	love.graphics.clear(0.8, 0.2, 0.8, 1)
 	-- love.graphics.clear(true)
 	-- local pos = self.world.entities[1].pos as vec2
 	-- love.graphics.print('hello', pos.x, pos.y)
@@ -55,32 +55,94 @@ function Game:enter()
 	
 	self.world = tiny.world()
 	
-	self.world:addSystem(require 'system.gravity')
 	self.world:addSystem(require 'system.velocity')
-	self.world:addSystem(require 'system.link')
+	self.world:addSystem(require 'system.gravity')
+	
+	local linkDummy: tiny.System<any> = tiny.system()
+	local linkSystem = require 'system.link'
+	function linkDummy:update(dt: number)
+		local iterations = 16
+		for _ = 1, iterations do
+			linkSystem:update(dt / iterations)
+		end
+	end
+	self.world:addSystem(linkDummy)
+	linkSystem.active = false
+	self.world:addSystem(linkSystem)
+	
+	self.world:addSystem(require 'system.draw_link')
 	self.world:addSystem(require 'system.draw')
 	
 	local a: table = {
-		pos = vec2(),
-		lastPos = vec2(),
+		pos = vec2(0, 0),
+		-- lastPos = vec2(),
 		-- lastDT = FRAME_TIME,
 	}
 	
 	local b: table = {
-		pos = vec2(100),
-		lastPos = vec2(100),
+		pos = vec2(100, 0),
+		lastPos = vec2(100, 0),
 		-- lastDT = FRAME_TIME,
 	}
 	
-	local link: table = {
+	local c: table = {
+		pos = vec2(100, 100),
+		lastPos = vec2(100, 100),
+		-- lastDT = FRAME_TIME,
+	}
+	
+	local d: table = {
+		pos = vec2(0, 100),
+		lastPos = vec2(0, 100),
+		-- lastDT = FRAME_TIME,
+	}
+	
+	local linkA: table = {
 		linkA = a,
 		linkB = b,
-		distance = 500,
+		distance = 200,
+	}
+	
+	local linkB: table = {
+		linkA = b,
+		linkB = c,
+		distance = 200,
+	}
+	
+	local linkC: table = {
+		linkA = c,
+		linkB = d,
+		distance = 200,
+	}
+	
+	local linkD: table = {
+		linkA = d,
+		linkB = a,
+		distance = 200,
+	}
+	
+	local linkE: table = {
+		linkA = a,
+		linkB = c,
+		distance = (200 ^ 2 + 200 ^ 2) ^ 0.5,
+	}
+	
+	local linkF: table = {
+		linkA = b,
+		linkB = d,
+		distance = (200 ^ 2 + 200 ^ 2) ^ 0.5,
 	}
 	
 	self.world:addEntity(a)
 	self.world:addEntity(b)
-	self.world:addEntity(link)
+	self.world:addEntity(c)
+	self.world:addEntity(d)
+	self.world:addEntity(linkA)
+	self.world:addEntity(linkB)
+	self.world:addEntity(linkC)
+	self.world:addEntity(linkD)
+	self.world:addEntity(linkE)
+	self.world:addEntity(linkF)
 	
 	self.world:refresh()
 	
