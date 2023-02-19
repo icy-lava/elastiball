@@ -73,8 +73,9 @@ else
 end
 
 global vec2 = require 'brinevector'
-global GRAVITY = vec2(0, 100)
+global GRAVITY = vec2(0, 500)
 
+global json = require 'json'
 global roomy = require 'roomy'
 global scene = roomy.new()
 global tiny = require 'tiny'
@@ -82,3 +83,4 @@ global vivid = require 'vivid'
 global baton = require 'baton'
 global util = require 'util'
 global filter = require 'system.filter'
+global level = require 'level'

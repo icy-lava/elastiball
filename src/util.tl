@@ -17,4 +17,18 @@ function util.drawSystem<T>(): tiny.System<T>
 	return system
 end
 
+-- function util.validateValue<T>(value: any, template: T): T
+-- 	if type(value) == type(template) then
+-- 		if template is table then
+-- 			for k, v in pairs(template) do
+-- 				if not util.validateValue((value as table)[k], v) then
+-- 					return nil
+-- 				end
+-- 			end
+-- 		end
+-- 		return value as T
+-- 	end
+-- 	return nil
+-- end
+
 return util

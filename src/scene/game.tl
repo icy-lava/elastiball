@@ -6,7 +6,6 @@ end
 Game.__index = Game
 
 function Game:update(dt: number)
-	-- self.camera:setAngle(self.camera:getAngle() + dt)
 	self.world:update(dt, function(_: tiny.World, system: tiny.System<any>): boolean
 		return not (system as table).draw
 	end)
@@ -15,11 +14,6 @@ end
 function Game:draw()
 	self.camera:attach(true)
 	love.graphics.clear(0.8, 0.2, 0.8, 1)
-	-- love.graphics.clear(true)
-	-- local pos = self.world.entities[1].pos as vec2
-	-- love.graphics.print('hello', pos.x, pos.y)
-	-- love.graphics.line(0.5, 0.5, 0.5, 100.5)
-	-- love.graphics.rectangle('line', 0, 0, 24, 11)
 	
 	self.world:update(0, function(_: tiny.World, system: tiny.System<any>): boolean
 		return not not (system as table).draw
@@ -51,7 +45,9 @@ function Game:resize(width: integer, height: integer)
 end
 
 function Game:enter()
-	self.camera = cam11(0, 0, 1, 0, 0, 0, love.graphics.getWidth() as integer, love.graphics.getHeight() as integer)
+	self.camera = cam11(
+		WIDTH / 2, HEIGHT / 2, 1, 0, 0, 0, love.graphics.getWidth() as integer, love.graphics.getHeight() as integer
+	)
 	
 	self.world = tiny.world()
 	
@@ -75,97 +71,48 @@ function Game:enter()
 	self.world:addSystem(require 'system.draw')
 	self.world:addSystem(require 'system.draw_player')
 	
-	local player: table = {
+	local levelString = love.filesystem.read('asset/level/1.tmj')
+	local levelData = level.decode(levelString)
+	
+	local entities: {{string:any}} = {}
+	
+	for i, point in ipairs(levelData.points) do
+		entities[i] = {
+			pos = point.copy,
+			lastPos = not levelData.isPinned[i] and point.copy or nil
+		}
+	end
+	
+	for _, link in ipairs(levelData.links) do
+		local a, b = entities[link.a], entities[link.b]
+		table.insert(entities, {
+			linkA = a,
+			linkB = b,
+			distance = (a.pos as vec2 - b.pos as vec2).length
+		})
+	end
+	
+	table.insert(entities, {
 		player = true,
-		pos = vec2(0, 0),
-		lastPos = vec2(0, 0),
+		pos = levelData.player.copy,
+		lastPos = levelData.player.copy,
 		input = baton.new {
 			controls = {
 				left = {'key:left', 'key:a', 'axis:leftx-', 'button:dpleft'},
 				right = {'key:right', 'key:d', 'axis:leftx+', 'button:dpright'},
 				up = {'key:up', 'key:w', 'axis:lefty-', 'button:dpup'},
 				down = {'key:down', 'key:s', 'axis:lefty+', 'button:dpdown'},
-				-- action = {'key:x', 'button:a'},
 			},
 			pairs = {
 				move = {'left', 'right', 'up', 'down'}
 			},
 			joystick = love.joystick.getJoysticks()[1],
 		}
-	}
+	})
 	
-	local a: table = {
-		pos = vec2(0, 0),
-		-- lastPos = vec2(),
-		-- lastDT = FRAME_TIME,
-	}
-	
-	local b: table = {
-		pos = vec2(100, 0),
-		lastPos = vec2(100, 0),
-		-- lastDT = FRAME_TIME,
-	}
-	
-	local c: table = {
-		pos = vec2(100, 100),
-		lastPos = vec2(100, 100),
-		-- lastDT = FRAME_TIME,
-	}
-	
-	local d: table = {
-		pos = vec2(0, 100),
-		lastPos = vec2(0, 100),
-		-- lastDT = FRAME_TIME,
-	}
-	
-	local linkA: table = {
-		linkA = a,
-		linkB = b,
-		distance = 200,
-	}
-	
-	local linkB: table = {
-		linkA = b,
-		linkB = c,
-		distance = 200,
-	}
-	
-	local linkC: table = {
-		linkA = c,
-		linkB = d,
-		distance = 200,
-	}
-	
-	local linkD: table = {
-		linkA = d,
-		linkB = a,
-		distance = 200,
-	}
-	
-	local linkE: table = {
-		linkA = a,
-		linkB = c,
-		distance = (200 ^ 2 + 200 ^ 2) ^ 0.5,
-	}
-	
-	local linkF: table = {
-		linkA = b,
-		linkB = d,
-		distance = (200 ^ 2 + 200 ^ 2) ^ 0.5,
-	}
-	
-	self.world:addEntity(player)
-	
-	self.world:addEntity(a)
-	self.world:addEntity(b)
-	self.world:addEntity(c)
-	self.world:addEntity(d)
-	self.world:addEntity(linkA)
-	self.world:addEntity(linkB)
-	self.world:addEntity(linkC)
-	self.world:addEntity(linkD)
-	self.world:addEntity(linkE)
-	self.world:addEntity(linkF)
+	for _, e in ipairs(entities) do
+		self.world:addEntity(e)
+	end
 	
 	self.world:refresh()
 	

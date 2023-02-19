@@ -11,18 +11,24 @@ endif
 SOURCE_LUA:=$(shell busybox find src -type f | busybox grep "\.lua$$")
 SOURCE_TEAL:=$(shell busybox find src -type f | busybox grep "\.tl$$" | busybox grep -v "\.d\.tl$$")
 
+SOURCE_LEVEL:=$(shell busybox find asset/level -type f | busybox grep "\.tmj$$")
+
+SOURCE_ASSETS:=$(SOURCE_LEVEL)
+
 LIBRARY_LUA:=$(shell busybox find lib -type f | busybox grep "\.lua$$")
 
 GENERATED_LUA:=$(patsubst src/%.tl,build/raw/%.lua,$(SOURCE_TEAL))
 COPIED_LUA:=$(patsubst src/%.lua,build/raw/%.lua,$(SOURCE_LUA)) $(patsubst lib/%.lua,build/raw/%.lua,$(LIBRARY_LUA))
 COMPILED_FILES:=$(GENERATED_LUA) $(COPIED_LUA)
+COPIED_ASSETS:=$(patsubst asset/%,build/raw/asset/%,$(SOURCE_ASSETS))
+ALL_FILES:=$(COMPILED_FILES) $(COPIED_ASSETS)
 
 ARTIFACT_LOVE:=build/game.love
 ARTIFACT_WEB:=build/game-web
 
-.PHONY: run serve compile clean love web
+.PHONY: run serve compile assets clean love web
 
-run: $(COMPILED_FILES)
+run: $(ALL_FILES)
 	cd build/raw && $(LOVE) . --developer --display 2
 
 serve: $(ARTIFACT_WEB)
@@ -30,8 +36,13 @@ serve: $(ARTIFACT_WEB)
 
 compile: $(COMPILED_FILES)
 
+assets: $(COPIED_ASSETS)
+build/raw/asset/level/%: asset/level/%
+	busybox dirname $@ | busybox xargs mkdir -p
+	busybox cp $< $@
+
 love: $(ARTIFACT_LOVE)
-$(ARTIFACT_LOVE): $(COMPILED_FILES)
+$(ARTIFACT_LOVE): $(ALL_FILES)
 	busybox rm -f $(ARTIFACT_LOVE)
 	7z a -bd -tzip -mx0 -r $@ ./build/raw/*
 
