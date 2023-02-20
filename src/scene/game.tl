@@ -9,11 +9,17 @@ function Game:update(dt: number)
 	self.world:update(dt, function(_: tiny.World, system: tiny.System<any>): boolean
 		return not (system as table).draw
 	end)
+	for _, entity in ipairs(self.world.entities) do
+		if entity.player then
+			local pos = entity.pos as vec2
+			self.camera:setPos(pos.x, pos.y)
+		end
+	end
 end
 
 function Game:draw()
 	self.camera:attach(true)
-	love.graphics.clear(0.8, 0.2, 0.8, 1)
+	love.graphics.clear(color.background)
 	
 	self.world:update(0, function(_: tiny.World, system: tiny.System<any>): boolean
 		return not not (system as table).draw
@@ -46,7 +52,6 @@ end
 
 function Game:enter()
 	local gw, gh = love.graphics.getDimensions() as (integer, integer)
-	self.camera = cam11(0, 0, 1, 0, 0, 0, gw, gh)
 	
 	self.world = tiny.world()
 	
@@ -67,7 +72,7 @@ function Game:enter()
 	self.world:addSystem(linkSystem)
 	
 	self.world:addSystem(require 'system.draw_link')
-	self.world:addSystem(require 'system.draw')
+	self.world:addSystem(require 'system.draw_point')
 	self.world:addSystem(require 'system.draw_player')
 	
 	local levelString = love.filesystem.read('asset/level/1.json')
@@ -79,7 +84,8 @@ function Game:enter()
 		local pos = vec2(point.pos.x, point.pos.y)
 		local entity: {string:any} = {
 			pos = pos.copy,
-			lastPos = not point.pinned and pos.copy or nil
+			lastPos = pos.copy,
+			pinned = point.pinned,
 		}
 		self.world:addEntity(entity)
 		points[uid] = entity
@@ -115,6 +121,7 @@ function Game:enter()
 			}
 		}
 		self.world:addEntity(entity)
+		self.camera = cam11(pos.x, pos.y, 1, 0, 0, 0, gw, gh)
 	end
 	
 	self.world:refresh()

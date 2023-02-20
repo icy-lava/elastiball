@@ -24,6 +24,27 @@ function util.getCorners(a: vec2, b: vec2, pad: number): vec2, vec2
 	return topLeft, bottomRight
 end
 
+local function hex2nums(hex: string): {number}
+	local nums: {number} = {}
+	for match in hex:gsub('^#', ''):gmatch('..') do
+		local num = tonumber(match, 16) / 255
+		table.insert(nums, num)
+	end
+	return nums
+end
+
+function util.hex2rgb(hex: string): number, number, number
+	local nums = hex2nums(hex)
+	assert(#nums == 3, 'expected 3 elements in hex')
+	return nums[1], nums[2], nums[3]
+end
+
+function util.hex2rgba(hex: string): number, number, number, number
+	local nums = hex2nums(hex)
+	assert(#nums == 4, 'expected 4 elements in hex')
+	return nums[1], nums[2], nums[3], nums[4]
+end
+
 -- function util.validateValue<T>(value: any, template: T): T
 -- 	if type(value) == type(template) then
 -- 		if template is table then

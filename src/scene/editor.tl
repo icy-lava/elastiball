@@ -273,7 +273,7 @@ function Editor:mousepressed(x: integer, y: integer, button: integer)
 	end
 end
 
-function Editor:mousereleased(x: integer, y: integer, button: integer)
+function Editor:mousereleased(_: integer, _: integer, button: integer)
 	if button == 3 then
 		self.drag = nil
 	end
@@ -430,14 +430,14 @@ function Editor:draw()
 	do -- Draw mode info
 		local textArray: {table|string} = {}
 		for i, mode in ipairs(modes) do
-			local color: {number, number, number, number} = {vivid.LCHtoRGB(40, 20, 10, 0.8)}
+			local col: color.RGBA = {vivid.LCHtoRGB(40, 20, 10, 0.8)}
 			if self.mode == mode then
-				color = {vivid.LCHtoRGB(60, 30, 240, 0.9)}
+				col = {vivid.LCHtoRGB(60, 30, 240, 0.9)}
 			end
 			
 			local text = string.format('%d: %s\n', i, mode)
 			
-			table.insert(textArray, color)
+			table.insert(textArray, col)
 			table.insert(textArray, text)
 		end
 		love.graphics.setColor(1, 1, 1, 1)
