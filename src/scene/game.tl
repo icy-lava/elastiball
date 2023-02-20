@@ -71,7 +71,7 @@ function Game:enter()
 	self.world:addSystem(require 'system.draw')
 	self.world:addSystem(require 'system.draw_player')
 	
-	local levelString = love.filesystem.read('asset/level/1.tmj')
+	local levelString = love.filesystem.read('asset/level/1.json')
 	local levelData = level.decode(levelString)
 	
 	local entities: {{string:any}} = {}

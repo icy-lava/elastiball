@@ -85,8 +85,14 @@ local record roomy
 		
 		emit: function(self: Manager, event: SceneEvent, ...: any)
 		enter: function(self: Manager, next: Scene, ...: any)
-		push: function(self: Manager, next: Scene)
-		pop: function(self: Manager, next: Scene)
+		enter: function<K, V>(self: Manager, next: {K:V}, ...: any)
+		enter: function<T>(self: Manager, next: T, ...: any)
+		push: function(self: Manager, next: Scene, ...: any)
+		push: function<K, V>(self: Manager, next: {K:V}, ...: any)
+		push: function<T>(self: Manager, next: T, ...: any)
+		pop: function(self: Manager, next: Scene, ...: any)
+		pop: function<K, V>(self: Manager, next: {K:V}, ...: any)
+		pop: function<T>(self: Manager, next: T, ...: any)
 		hook: function(self: Manager, options: Options)
 	end
 	

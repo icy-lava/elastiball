@@ -29,13 +29,41 @@ local record Editor
 		'select' 'move' 'point' 'pin' 'link' 'player'
 	end
 	mode: Mode
+	
+	enum ModalOp
+		'save' 'open'
+	end
+	
+	record ModalContext
+		op: ModalOp
+		filename: string
+	end
+	
 	font: love.graphics.Font
 	data: Data
 	gridStep: vec2
+	filename: string
 	
 	__index: Editor
 end
 Editor.__index = Editor
+
+function Editor.new(): Editor
+	return setmetatable({}, Editor)
+end
+
+local record EditorModal
+	editor: Editor
+	ctx: Editor.ModalContext
+	text: string
+	font: love.graphics.Font
+	__index: EditorModal
+end
+EditorModal.__index = EditorModal
+
+function EditorModal.new(): EditorModal
+	return setmetatable({}, EditorModal)
+end
 
 local modes: {Editor.Mode} = {'select', 'move', 'point', 'pin', 'link', 'player'}
 local modeIndices: {Editor.Mode:integer} = {}
@@ -122,6 +150,42 @@ function Editor:newUID(): string
 	return tostring(self.data.lastUID)
 end
 
+function Editor:doSave(filename: string)
+	if filename and filename ~= '' then
+		local data = level.encode(self.data)
+		local filepath = '../../asset/level/' .. filename .. '.json'
+		local stream = io.open(filepath, 'wb')
+		if stream then
+			stream:write(data)
+			stream:close()
+			self.filename = filename
+			log.info(string.format('saved file to %q', filepath))
+		else
+			log.error(string.format('could not open file %q', filepath))
+		end
+	else
+		log.error 'no filename present'
+	end
+end
+
+function Editor:doOpen(filename: string)
+	if filename and filename ~= '' then
+		local filepath = '../../asset/level/' .. filename .. '.json'
+		local stream = io.open(filepath, 'rb')
+		if stream then
+			local data = stream:read()
+			stream:close()
+			self.data = level.decode(data)
+			self.filename = filename
+			log.info(string.format('opened file %q', filepath))
+		else
+			log.error(string.format('could not open file %q', filepath))
+		end
+	else
+		log.error 'no filename present'
+	end
+end
+
 function Editor:enter()
 	self.camera = cam11(0, 0, 1, 0, 0, 0)
 	self.mode = modes[1]
@@ -147,28 +211,6 @@ function Editor:wheelmoved(_: number, dy: number)
 	local newPos = vec2(self.camera:toWorld(mx, my))
 	local delta = startPos - newPos
 	self.camera:setPos(self.camera:getX() + delta.x, self.camera:getY() + delta.y)
-end
-
-function Editor:keypressed(key: string)
-	local num: integer = tonumber(key)
-	if num and modes[num] then
-		self.mode = modes[num]
-		return
-	end
-	
-	if key == 'delete' then
-		self:deleteSelection()
-		return
-	end
-	
-	if key == 'a' and love.keyboard.isDown('lctrl', 'rctrl') then
-		if love.keyboard.isDown('lshift', 'rshift') then
-			self:deselectAll()
-		else
-			self:selectAll()
-		end
-		return
-	end
 end
 
 function Editor:mousepressed(x: integer, y: integer, button: integer)
@@ -403,8 +445,121 @@ function Editor:draw()
 	end
 end
 
-function Editor.new(): Editor
-	return setmetatable({}, Editor)
+function EditorModal:enter(editor: Editor, ctx: Editor.ModalContext)
+	self.editor = editor
+	self.ctx = ctx
+	self.text = ctx.filename or ''
+	self.font = love.graphics.newFont(32)
+end
+
+function EditorModal:draw()
+	self.editor:draw()
+	
+	love.graphics.push 'all'
+	
+	love.graphics.setColor(0, 0, 0, 0.5)
+	love.graphics.rectangle('fill', 0, 0, love.graphics.getDimensions())
+	
+	local gw, gh = love.graphics.getDimensions()
+	if self.ctx.op == 'save' or self.ctx.op == 'open' then
+		love.graphics.setColor(1, 1, 1, 1)
+		local x = math.floor(gw / 2 - 200)
+		local y = math.floor(gh * 2 / 3 - self.font:getHeight() / 2)
+		love.graphics.printf({{1, 1, 1, 1}, self.text}, self.font, x, y, 400, 'center')
+	end
+	
+	love.graphics.pop()
+end
+
+function EditorModal:textinput(text: string)
+	self.text = self.text .. text
+end
+
+function EditorModal:keypressed(key: string)
+	if key == 'escape' then
+		scene:pop()
+		return
+	end
+	
+	if key == 'return' then
+		if self.ctx.op == 'save' or self.ctx.op == 'open' then
+			scene:pop(self.text)
+		else
+			log.warn('unknown op: ' .. tostring(self.ctx.op))
+			scene:pop()
+		end
+		return
+	end
+	
+	if key == 'backspace' then
+		-- FIXME: this doesn't deal with UTF8
+		self.text = self.text:sub(1, -2)
+	end
+end
+
+function Editor:resume(modal: EditorModal, data: string)
+	if modal.ctx.op == 'save' then
+		self:doSave(data)
+	elseif modal.ctx.op == 'open' then
+		self:doOpen(data)
+	else
+		log.warn('unknown op: ' .. tostring(modal.ctx.op))
+	end
+end
+
+function Editor:keypressed(key: string)
+	local num: integer = tonumber(key)
+	if num and modes[num] then
+		self.mode = modes[num]
+		return
+	end
+	
+	if key == 'delete' then
+		self:deleteSelection()
+		return
+	end
+	
+	if key == 'a' and love.keyboard.isDown('lctrl', 'rctrl') then
+		if love.keyboard.isDown('lshift', 'rshift') then
+			self:deselectAll()
+		else
+			self:selectAll()
+		end
+		return
+	end
+	
+	if key == 's' and love.keyboard.isDown('lctrl', 'rctrl') then
+		if not self.filename or love.keyboard.isDown('lshift', 'rshift') then
+			local ctx: Editor.ModalContext = {
+				op = 'save',
+				filename = self.filename,
+			}
+			scene:push(EditorModal.new(), ctx)
+		else
+			self:doSave(self.filename)
+		end
+		return
+	end
+	
+	if key == 'o' and love.keyboard.isDown('lctrl', 'rctrl') then
+		local ctx: Editor.ModalContext = {
+			op = 'open',
+			filename = self.filename,
+		}
+		scene:push(EditorModal.new(), ctx)
+		return
+	end
+	
+	if key == 'n' and love.keyboard.isDown('lctrl', 'rctrl') then
+		scene:enter(Editor.new())
+		return
+	end
+	
+	if key == 'p' then
+		self.camera:setPos(self.data.player.x, self.data.player.y)
+		self.camera:setZoom(1)
+		return
+	end
 end
 
 return Editor

@@ -23,8 +23,14 @@ local record level
 		links: {UID:Link}
 		lastUID: integer
 	end
-	
-	decode: function(str: string): Data
+end
+
+function level.decode(str: string): level.Data
+	return json.decode(str) as level.Data
+end
+
+function level.encode(data: level.Data): string
+	return json.encode(data as json.Value)
 end
 
 return level
