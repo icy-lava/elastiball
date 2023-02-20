@@ -11,7 +11,7 @@ endif
 SOURCE_LUA:=$(shell busybox find src -type f | busybox grep "\.lua$$")
 SOURCE_TEAL:=$(shell busybox find src -type f | busybox grep "\.tl$$" | busybox grep -v "\.d\.tl$$")
 
-SOURCE_LEVEL:=$(shell busybox find asset/level -type f | busybox grep "\.tmj$$")
+SOURCE_LEVEL:=$(shell busybox find asset/level -type f | busybox grep "\.json$$")
 
 SOURCE_ASSETS:=$(SOURCE_LEVEL)
 
