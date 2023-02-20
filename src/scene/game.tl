@@ -45,9 +45,8 @@ function Game:resize(width: integer, height: integer)
 end
 
 function Game:enter()
-	self.camera = cam11(
-		WIDTH / 2, HEIGHT / 2, 1, 0, 0, 0, love.graphics.getWidth() as integer, love.graphics.getHeight() as integer
-	)
+	local gw, gh = love.graphics.getDimensions() as (integer, integer)
+	self.camera = cam11(0, 0, 1, 0, 0, 0, gw, gh)
 	
 	self.world = tiny.world()
 	
@@ -74,49 +73,53 @@ function Game:enter()
 	local levelString = love.filesystem.read('asset/level/1.json')
 	local levelData = level.decode(levelString)
 	
-	local entities: {{string:any}} = {}
+	local points: {level.Data.UID:{string:any}} = {}
 	
-	-- for i, point in ipairs(levelData.points) do
-	-- 	entities[i] = {
-	-- 		pos = point.copy,
-	-- 		lastPos = not levelData.isPinned[i] and point.copy or nil
-	-- 	}
-	-- end
+	for uid, point in pairs(levelData.points) do
+		local pos = vec2(point.pos.x, point.pos.y)
+		local entity: {string:any} = {
+			pos = pos.copy,
+			lastPos = not point.pinned and pos.copy or nil
+		}
+		self.world:addEntity(entity)
+		points[uid] = entity
+	end
 	
-	-- for _, link in ipairs(levelData.links) do
-	-- 	local a, b = entities[link.a], entities[link.b]
-	-- 	table.insert(entities, {
-	-- 		linkA = a,
-	-- 		linkB = b,
-	-- 		distance = (a.pos as vec2 - b.pos as vec2).length
-	-- 	})
-	-- end
+	for _, link in pairs(levelData.links) do
+		local a, b = points[link.a], points[link.b]
+		local entity: {string:any} = {
+			linkA = a,
+			linkB = b,
+			distance = (a.pos as vec2 - b.pos as vec2).length
+		}
+		self.world:addEntity(entity)
+	end
 	
-	-- table.insert(entities, {
-	-- 	player = true,
-	-- 	pos = levelData.player.copy,
-	-- 	lastPos = levelData.player.copy,
-	-- 	input = baton.new {
-	-- 		controls = {
-	-- 			left = {'key:left', 'key:a', 'axis:leftx-', 'button:dpleft'},
-	-- 			right = {'key:right', 'key:d', 'axis:leftx+', 'button:dpright'},
-	-- 			up = {'key:up', 'key:w', 'axis:lefty-', 'button:dpup'},
-	-- 			down = {'key:down', 'key:s', 'axis:lefty+', 'button:dpdown'},
-	-- 		},
-	-- 		pairs = {
-	-- 			move = {'left', 'right', 'up', 'down'}
-	-- 		},
-	-- 		joystick = love.joystick.getJoysticks()[1],
-	-- 	}
-	-- })
-	
-	for _, e in ipairs(entities) do
-		self.world:addEntity(e)
+	do
+		local pos = vec2(levelData.player.x, levelData.player.y)
+		local entity: {string:any} = {
+			player = true,
+			pos = pos.copy,
+			lastPos = pos.copy,
+			input = baton.new {
+				controls = {
+					left = {'key:left', 'key:a', 'axis:leftx-', 'button:dpleft'},
+					right = {'key:right', 'key:d', 'axis:leftx+', 'button:dpright'},
+					up = {'key:up', 'key:w', 'axis:lefty-', 'button:dpup'},
+					down = {'key:down', 'key:s', 'axis:lefty+', 'button:dpdown'},
+				},
+				pairs = {
+					move = {'left', 'right', 'up', 'down'}
+				},
+				joystick = love.joystick.getJoysticks()[1],
+			}
+		}
+		self.world:addEntity(entity)
 	end
 	
 	self.world:refresh()
 	
-	self:resize(love.graphics.getDimensions() as (integer, integer))
+	self:resize(gw, gh)
 end
 
 function Game.new(): Game
