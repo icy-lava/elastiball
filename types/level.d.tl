@@ -1,14 +1,27 @@
 local record level
 	record Data
+		type UID = string
 		record Link
-			a: integer
-			b: integer
+			uid: UID
+			a: UID
+			b: UID
 		end
 		
-		player: vec2
-		points: {vec2}
-		links: {Link}
-		isPinned: {integer:boolean}
+		record Position
+			x: number
+			y: number
+		end
+		
+		record Point
+			uid: UID
+			pos: Position
+			pinned: boolean
+		end
+		
+		player: Position
+		points: {UID:Point}
+		links: {UID:Link}
+		lastUID: integer
 	end
 	
 	decode: function(str: string): Data

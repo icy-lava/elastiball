@@ -58,7 +58,7 @@ function Game:enter()
 	local linkDummy: tiny.System<any> = tiny.system()
 	local linkSystem = require 'system.link'
 	function linkDummy:update(dt: number)
-		local iterations = 16
+		local iterations = 3
 		for _ = 1, iterations do
 			linkSystem:update(dt / iterations)
 		end
@@ -76,39 +76,39 @@ function Game:enter()
 	
 	local entities: {{string:any}} = {}
 	
-	for i, point in ipairs(levelData.points) do
-		entities[i] = {
-			pos = point.copy,
-			lastPos = not levelData.isPinned[i] and point.copy or nil
-		}
-	end
+	-- for i, point in ipairs(levelData.points) do
+	-- 	entities[i] = {
+	-- 		pos = point.copy,
+	-- 		lastPos = not levelData.isPinned[i] and point.copy or nil
+	-- 	}
+	-- end
 	
-	for _, link in ipairs(levelData.links) do
-		local a, b = entities[link.a], entities[link.b]
-		table.insert(entities, {
-			linkA = a,
-			linkB = b,
-			distance = (a.pos as vec2 - b.pos as vec2).length
-		})
-	end
+	-- for _, link in ipairs(levelData.links) do
+	-- 	local a, b = entities[link.a], entities[link.b]
+	-- 	table.insert(entities, {
+	-- 		linkA = a,
+	-- 		linkB = b,
+	-- 		distance = (a.pos as vec2 - b.pos as vec2).length
+	-- 	})
+	-- end
 	
-	table.insert(entities, {
-		player = true,
-		pos = levelData.player.copy,
-		lastPos = levelData.player.copy,
-		input = baton.new {
-			controls = {
-				left = {'key:left', 'key:a', 'axis:leftx-', 'button:dpleft'},
-				right = {'key:right', 'key:d', 'axis:leftx+', 'button:dpright'},
-				up = {'key:up', 'key:w', 'axis:lefty-', 'button:dpup'},
-				down = {'key:down', 'key:s', 'axis:lefty+', 'button:dpdown'},
-			},
-			pairs = {
-				move = {'left', 'right', 'up', 'down'}
-			},
-			joystick = love.joystick.getJoysticks()[1],
-		}
-	})
+	-- table.insert(entities, {
+	-- 	player = true,
+	-- 	pos = levelData.player.copy,
+	-- 	lastPos = levelData.player.copy,
+	-- 	input = baton.new {
+	-- 		controls = {
+	-- 			left = {'key:left', 'key:a', 'axis:leftx-', 'button:dpleft'},
+	-- 			right = {'key:right', 'key:d', 'axis:leftx+', 'button:dpright'},
+	-- 			up = {'key:up', 'key:w', 'axis:lefty-', 'button:dpup'},
+	-- 			down = {'key:down', 'key:s', 'axis:lefty+', 'button:dpdown'},
+	-- 		},
+	-- 		pairs = {
+	-- 			move = {'left', 'right', 'up', 'down'}
+	-- 		},
+	-- 		joystick = love.joystick.getJoysticks()[1],
+	-- 	}
+	-- })
 	
 	for _, e in ipairs(entities) do
 		self.world:addEntity(e)

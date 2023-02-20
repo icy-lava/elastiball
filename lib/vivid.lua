@@ -356,13 +356,13 @@ function vivid.LabtoLCH(...)
 
   C = math_sqrt(a ^ 2 + b ^ 2)
 
-  return L,C,H
+  return L,C,H,alpha
 end
 
 function vivid.LCHtoLab(...)
   local L,C,H,alpha = getColorArgs(...)
 
-  return L,math_cos(math_rad(H))*C,math_sin(math_rad(H))*C
+  return L,math_cos(math_rad(H))*C,math_sin(math_rad(H))*C,alpha
 end
 
 function vivid.XYZtoLuv(...)
@@ -382,7 +382,7 @@ function vivid.XYZtoLuv(...)
   u = 13 * L * (u - refu)
   v = 13 * L * (v - refv)
 
-  return L,u,v
+  return L,u,v,alpha
 end
 
 function vivid.LuvtoXYZ(...)
@@ -403,7 +403,7 @@ function vivid.LuvtoXYZ(...)
   x = -(9 * y * u) / ((u - 4 ) * v - u * v)
   z = (9 * y - (15 * v * y) - (v * x)) / (3 * v)
 
-  return x,y,z
+  return x,y,z,alpha
 end
 
 --Manipulations:

@@ -26,10 +26,13 @@ ALL_FILES:=$(COMPILED_FILES) $(COPIED_ASSETS)
 ARTIFACT_LOVE:=build/game.love
 ARTIFACT_WEB:=build/game-web
 
-.PHONY: run serve compile assets clean love web
+.PHONY: run editor serve compile assets clean love web
 
 run: $(ALL_FILES)
 	cd build/raw && $(LOVE) . --developer --display 2
+
+editor: $(ALL_FILES)
+	cd build/raw && $(LOVE) . --editor --developer --display 2
 
 serve: $(ARTIFACT_WEB)
 	cd build/game-web && python -m http.server --bind 127.0.0.1
@@ -63,5 +66,5 @@ build/raw/%.lua: lib/%.lua
 	busybox cp $< $@
 
 $(GENERATED_LUA): $(SOURCE_TEAL) tlconfig.lua
-	busybox mkdir -p build
+	busybox mkdir -p build/raw
 	tl build

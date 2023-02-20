@@ -17,6 +17,13 @@ function util.drawSystem<T>(): tiny.System<T>
 	return system
 end
 
+function util.getCorners(a: vec2, b: vec2, pad: number): vec2, vec2
+	pad = pad or 0
+	local topLeft = vec2(math.min(a.x, b.x) - pad, math.min(a.y, b.y) - pad)
+	local bottomRight = vec2(math.max(a.x, b.x) + pad, math.max(a.y, b.y) + pad)
+	return topLeft, bottomRight
+end
+
 -- function util.validateValue<T>(value: any, template: T): T
 -- 	if type(value) == type(template) then
 -- 		if template is table then

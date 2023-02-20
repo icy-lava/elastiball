@@ -43,7 +43,11 @@ function love.load()
 			'resize',
 		}
 	}
-	scene:enter(require 'scene.game'.new())
+	if cli.editor then
+		scene:enter(require 'scene.editor'.new())
+	else
+		scene:enter(require 'scene.game'.new())
+	end
 end
 
 local lastWidth, lastHeight

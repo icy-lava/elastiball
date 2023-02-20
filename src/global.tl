@@ -16,6 +16,9 @@ parser:add_help('--help -?')
 parser:flag('--dev --developer')
 	:description 'Enable developer mode'
 
+parser:flag('--editor')
+	:description 'Enter the level editor'
+
 parser:option('--width -w')
 	:description 'Specify the width of the window'
 	:args(1)
@@ -38,6 +41,7 @@ parser:flag('--show-console')
 
 global record CLI
 	dev: boolean
+	editor: boolean
 	display: integer
 	width: integer
 	height: integer

@@ -13,6 +13,7 @@
 ]]
 
 local record Vector
+	userdata
 	-- Static functions
 	metamethod __call: function(self: Vector, x: number, y: number): Vector
 	isVector: function(value: any): boolean

@@ -14,7 +14,7 @@ local system: tiny.System<Entity> = tiny.processingSystem()
 
 system.filter = tiny.requireAll('linkA', 'linkB', 'distance')
 
-function system:process(entity: Entity, _: number)
+function system:process(entity: Entity, dt: number)
 	local a, b = entity.linkA, entity.linkB
 	local dpos = b.pos - a.pos
 	local ddist = dpos.length
@@ -37,11 +37,11 @@ function system:process(entity: Entity, _: number)
 	local newAPos = a.pos + normal * halfError * mulA
 	local newBPos = b.pos - normal * halfError * mulB
 	
-	-- local smooth = 0.00000001
-	-- a.pos = util.damp(smooth, dt, a.pos, newAPos)
-	-- b.pos = util.damp(smooth, dt, b.pos, newBPos)
-	a.pos = newAPos
-	b.pos = newBPos
+	local smooth = 0.8
+	a.pos = util.damp(smooth, dt, a.pos, newAPos)
+	b.pos = util.damp(smooth, dt, b.pos, newBPos)
+	-- a.pos = newAPos
+	-- b.pos = newBPos
 end
 
 return system
