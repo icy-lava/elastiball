@@ -77,7 +77,7 @@ else
 end
 
 global vec2 = require 'brinevector'
-global GRAVITY = vec2(0, 500)
+global GRAVITY = vec2(0, 300)
 
 global json = require 'json'
 global roomy = require 'roomy'

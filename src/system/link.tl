@@ -37,7 +37,10 @@ function system:process(entity: Entity, dt: number)
 	local newAPos = a.pos + normal * halfError * mulA
 	local newBPos = b.pos - normal * halfError * mulB
 	
-	local smooth = 0.01
+	local smooth = 0.05
+	if halfError < 0 then
+		smooth = 0.3
+	end
 	a.pos = util.damp(smooth, dt, a.pos, newAPos)
 	b.pos = util.damp(smooth, dt, b.pos, newBPos)
 	-- a.pos = newAPos

@@ -59,6 +59,8 @@ function Game:enter(_: roomy.Scene, levelName: string)
 	
 	self.world = tiny.world()
 	
+	self.world:addSystem(require 'system.point')
+	
 	self.world:addSystem(require 'system.input')
 	self.world:addSystem(require 'system.velocity')
 	self.world:addSystem(require 'system.gravity')
@@ -122,12 +124,13 @@ function Game:enter(_: roomy.Scene, levelName: string)
 					aimRight  = {'axis:rightx+'},
 					aimUp     = {'axis:righty-'},
 					aimDown   = {'axis:righty+'},
+					grab      = {'key:space', 'key:j', 'key:x', 'mouse:1', 'button:a'},
 				},
 				pairs = {
 					move = {'moveLeft', 'moveRight', 'moveUp', 'moveDown'},
 					aim =  {'aimLeft', 'aimRight', 'aimUp', 'aimDown'},
 				},
-				deadzone = 0.1,
+				deadzone = 0.2,
 				joystick = love.joystick.getJoysticks()[1],
 			}
 		}
