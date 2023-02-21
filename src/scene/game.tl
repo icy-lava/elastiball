@@ -131,7 +131,8 @@ function Game:enter(_: roomy.Scene, levelName: string)
 					aimRight  = {'axis:rightx+'},
 					aimUp     = {'axis:righty-'},
 					aimDown   = {'axis:righty+'},
-					grab      = {'key:space', 'key:j', 'key:x', 'mouse:1', 'button:a'},
+					grab      = {'key:space', 'mouse:1', 'button:a', 'button:rightshoulder', 'axis:triggerright+'},
+					boost     = {'key:lctrl', 'mouse:2', 'button:b', 'button:leftshoulder', 'axis:triggerleft+'},
 				},
 				pairs = {
 					move = {'moveLeft', 'moveRight', 'moveUp', 'moveDown'},

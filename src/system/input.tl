@@ -65,7 +65,7 @@ function system:process(entity: Entity, dt: number)
 		entity.target = target
 	end
 	
-	if entity.target and entity.input:pressed 'grab' then
+	if not entity.link and entity.target and entity.input:down 'grab' then
 		entity.link = {
 			linkA = entity,
 			linkB = entity.target,
@@ -76,7 +76,7 @@ function system:process(entity: Entity, dt: number)
 		self.world:addEntity(entity.link)
 	end
 	
-	if entity.link and entity.input:released 'grab' then
+	if entity.link and not entity.input:down 'grab' then
 		self.world:removeEntity(entity.link)
 		entity.link = nil
 	end
