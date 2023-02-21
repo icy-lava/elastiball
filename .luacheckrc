@@ -1,6 +1,7 @@
 std = 'luajit+love'
 ignore = {"611"}
 globals = {
+	'util',
 	'vec2',
 	'log',
 	'json',

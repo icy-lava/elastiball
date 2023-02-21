@@ -50,7 +50,11 @@ function Game:resize(width: integer, height: integer)
 	self.camera:setViewport(x, y, fitWidth, fitHeight)
 end
 
-function Game:enter()
+function Game:mousemoved(_: integer, _: integer, dx: integer, dy: integer)
+	util.mouseRel = util.mouseRel + vec2(dx, dy)
+end
+
+function Game:enter(_: roomy.Scene, levelName: string)
 	local gw, gh = love.graphics.getDimensions() as (integer, integer)
 	
 	self.world = tiny.world()
@@ -75,7 +79,7 @@ function Game:enter()
 	self.world:addSystem(require 'system.draw_point')
 	self.world:addSystem(require 'system.draw_player')
 	
-	local levelString = love.filesystem.read('asset/level/1.json')
+	local levelString = love.filesystem.read(string.format('asset/level/%d.json', levelName))
 	local levelData = level.decode(levelString)
 	
 	local points: {level.Data.UID:{string:any}} = {}
@@ -107,16 +111,23 @@ function Game:enter()
 			player = true,
 			pos = pos.copy,
 			lastPos = pos.copy,
+			aim = vec2(1, 0),
 			input = baton.new {
 				controls = {
-					left = {'key:left', 'key:a', 'axis:leftx-', 'button:dpleft'},
-					right = {'key:right', 'key:d', 'axis:leftx+', 'button:dpright'},
-					up = {'key:up', 'key:w', 'axis:lefty-', 'button:dpup'},
-					down = {'key:down', 'key:s', 'axis:lefty+', 'button:dpdown'},
+					moveLeft  = {'key:left', 'key:a', 'axis:leftx-', 'button:dpleft'},
+					moveRight = {'key:right', 'key:d', 'axis:leftx+', 'button:dpright'},
+					moveUp    = {'key:up', 'key:w', 'axis:lefty-', 'button:dpup'},
+					moveDown  = {'key:down', 'key:s', 'axis:lefty+', 'button:dpdown'},
+					aimLeft   = {'axis:rightx-'},
+					aimRight  = {'axis:rightx+'},
+					aimUp     = {'axis:righty-'},
+					aimDown   = {'axis:righty+'},
 				},
 				pairs = {
-					move = {'left', 'right', 'up', 'down'}
+					move = {'moveLeft', 'moveRight', 'moveUp', 'moveDown'},
+					aim =  {'aimLeft', 'aimRight', 'aimUp', 'aimDown'},
 				},
+				deadzone = 0.1,
 				joystick = love.joystick.getJoysticks()[1],
 			}
 		}
@@ -127,6 +138,12 @@ function Game:enter()
 	self.world:refresh()
 	
 	self:resize(gw, gh)
+	
+	love.mouse.setRelativeMode(true)
+end
+
+function Game:leave()
+	love.mouse.setRelativeMode(false)
 end
 
 function Game.new(): Game

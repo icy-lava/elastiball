@@ -1,5 +1,5 @@
 local record util
-	
+	mouseRel: vec2
 end
 
 function util.lerp<T>(t: number, a: T, b: T): T

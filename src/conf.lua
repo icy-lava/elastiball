@@ -46,7 +46,7 @@ function love.load()
 	if cli.editor then
 		scene:enter(require 'scene.editor'.new())
 	else
-		scene:enter(require 'scene.game'.new())
+		scene:enter(require 'scene.game'.new(), '1')
 	end
 end
 
@@ -93,6 +93,7 @@ function love.run()
 	-- Main loop time.
 	return function()
 		lastWidth, lastHeight = love.graphics.getDimensions()
+		util.mouseRel = vec2()
 		-- Process events.
 		if love.event then
 			love.event.pump()

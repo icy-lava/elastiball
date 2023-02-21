@@ -25,6 +25,7 @@ local record baton
 		released: function(self: Player, name: string): boolean
 		
 		getActiveDevice: function(self: Player): ActiveDevice
+		_activeDevice: ActiveDevice
 	end
 	
 	new: function(config: Configuration): Player
