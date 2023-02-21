@@ -45,6 +45,10 @@ function util.hex2rgba(hex: string): number, number, number, number
 	return nums[1], nums[2], nums[3], nums[4]
 end
 
+function util.instance<T>(t: T): T
+	return setmetatable({} as T, {__index = t})
+end
+
 -- function util.validateValue<T>(value: any, template: T): T
 -- 	if type(value) == type(template) then
 -- 		if template is table then

@@ -1,6 +1,7 @@
 local record Game
 	camera: cam11.Camera
 	world: tiny.World
+	levelName: string
 	__index: Game
 end
 Game.__index = Game
@@ -54,33 +55,38 @@ function Game:mousemoved(_: integer, _: integer, dx: integer, dy: integer)
 	util.mouseRel = util.mouseRel + vec2(dx, dy)
 end
 
+function Game:mousepressed(_: integer)
+	love.mouse.setRelativeMode(true)
+end
+
 function Game:enter(_: roomy.Scene, levelName: string)
 	local gw, gh = love.graphics.getDimensions() as (integer, integer)
 	
 	self.world = tiny.world()
 	
-	self.world:addSystem(require 'system.point')
+	self.world:addSystem(util.instance(require 'system.point'))
 	
-	self.world:addSystem(require 'system.input')
-	self.world:addSystem(require 'system.velocity')
-	self.world:addSystem(require 'system.gravity')
+	self.world:addSystem(util.instance(require 'system.input'))
+	self.world:addSystem(util.instance(require 'system.velocity'))
+	self.world:addSystem(util.instance(require 'system.gravity'))
 	
 	local linkDummy: tiny.System<any> = tiny.system()
-	local linkSystem = require 'system.link'
+	local linkSystem = util.instance(require 'system.link')
 	function linkDummy:update(dt: number)
 		local iterations = 3
 		for _ = 1, iterations do
 			linkSystem:update(dt / iterations)
 		end
 	end
-	self.world:addSystem(linkDummy)
+	self.world:addSystem(util.instance(linkDummy))
 	linkSystem.active = false
 	self.world:addSystem(linkSystem)
 	
-	self.world:addSystem(require 'system.draw_link')
-	self.world:addSystem(require 'system.draw_point')
-	self.world:addSystem(require 'system.draw_player')
+	self.world:addSystem(util.instance(require 'system.draw_link'))
+	self.world:addSystem(util.instance(require 'system.draw_point'))
+	self.world:addSystem(util.instance(require 'system.draw_player'))
 	
+	self.levelName = levelName
 	local levelString = love.filesystem.read(string.format('asset/level/%d.json', levelName))
 	local levelData = level.decode(levelString)
 	
@@ -102,7 +108,7 @@ function Game:enter(_: roomy.Scene, levelName: string)
 		local entity: {string:any} = {
 			linkA = a,
 			linkB = b,
-			distance = (a.pos as vec2 - b.pos as vec2).length
+			distance = (a.pos as vec2 - b.pos as vec2).length,
 		}
 		self.world:addEntity(entity)
 	end
@@ -114,6 +120,7 @@ function Game:enter(_: roomy.Scene, levelName: string)
 			pos = pos.copy,
 			lastPos = pos.copy,
 			aim = vec2(1, 0),
+			mass = 5,
 			input = baton.new {
 				controls = {
 					moveLeft  = {'key:left', 'key:a', 'axis:leftx-', 'button:dpleft'},
@@ -151,6 +158,19 @@ end
 
 function Game.new(): Game
 	return setmetatable({}, Game)
+end
+
+function Game:keypressed(key: string)
+	if cli.dev then
+		if key == 'r' and love.keyboard.isDown('lctrl', 'rctrl') then
+			scene:enter(Game.new(), self.levelName)
+			return
+		end
+	end
+	if key == 'escape' then
+		love.mouse.setRelativeMode(false)
+		return
+	end
 end
 
 return Game

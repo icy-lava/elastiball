@@ -1,5 +1,6 @@
 local record Target
 	pos: vec2
+	pinned: boolean
 end
 
 local record Entity
@@ -42,15 +43,17 @@ function system:process(entity: Entity, dt: number)
 					-- print(1)
 					for _, e in ipairs(sys.entities) do
 						local t = e as Target
-						local delta = t.pos - entity.pos
-						local dot = delta.normalized:dot(naim)
-						if dot > 0.1 then
-							local pass = delta.length / dot
-							if pass < 300 then
-								local newErr = delta.length / dot ^ 5
-								if newErr < err then
-									target = t
-									err = newErr
+						if not t.pinned then
+							local delta = t.pos - entity.pos
+							local dot = delta.normalized:dot(naim)
+							if dot > 0.1 then
+								local pass = delta.length / dot
+								if pass < 300 then
+									local newErr = delta.length / dot ^ 5
+									if newErr < err then
+										target = t
+										err = newErr
+									end
 								end
 							end
 						end
@@ -66,7 +69,9 @@ function system:process(entity: Entity, dt: number)
 		entity.link = {
 			linkA = entity,
 			linkB = entity.target,
-			distance = (entity.pos - entity.target.pos).length
+			distance = (entity.pos - entity.target.pos).length,
+			inStrength = 0,
+			outStrength = 0.1
 		}
 		self.world:addEntity(entity.link)
 	end
