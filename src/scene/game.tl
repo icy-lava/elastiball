@@ -2,11 +2,13 @@ local record Game
 	camera: cam11.Camera
 	world: tiny.World
 	levelName: string
+	input: baton.Player
 	__index: Game
 end
 Game.__index = Game
 
 function Game:update(dt: number)
+	self.input:update()
 	self.world:update(dt, function(_: tiny.World, system: tiny.System<any>): boolean
 		return not (system as table).draw
 	end)
@@ -19,6 +21,8 @@ function Game:update(dt: number)
 end
 
 function Game:draw()
+	local gw, gh = love.graphics.getDimensions()
+	
 	self.camera:attach(true)
 	love.graphics.clear(color.background)
 	
@@ -27,6 +31,21 @@ function Game:draw()
 	end)
 	
 	self.camera:detach()
+	
+	do -- Heat bar
+		local barWidth = util.round(gw * 3 / 4)
+		local barY = gh - 100
+		local barLeft = vec2((gw - barWidth) / 2, barY)
+		local barRight = barLeft + vec2(barWidth, 0)
+		local barCenter = (barLeft + barRight) / 2
+		local pad = 12
+		
+		local heat = ((self as table).player as table).heat as number
+		love.graphics.setColor(color.labLerp(heat, color.white, color.hot))
+		util.crect('fill', barLeft.x, barLeft.y, 6, 32, 3)
+		util.crect('fill', barRight.x, barRight.y, 6, 32, 3)
+		util.crect('fill', barCenter.x, barCenter.y, (barWidth - pad * 2 - 6) * heat + 6, 6, 3)
+	end
 end
 
 function Game:resize(width: integer, height: integer)
@@ -113,6 +132,8 @@ function Game:enter(_: roomy.Scene, levelName: string)
 		self.world:addEntity(entity)
 	end
 	
+	self.input = config.input
+	
 	do
 		local pos = vec2(levelData.player.x, levelData.player.y)
 		local entity: {string:any} = {
@@ -120,28 +141,11 @@ function Game:enter(_: roomy.Scene, levelName: string)
 			pos = pos.copy,
 			lastPos = pos.copy,
 			aim = vec2(1, 0),
-			mass = 5,
-			input = baton.new {
-				controls = {
-					moveLeft  = {'key:left', 'key:a', 'axis:leftx-', 'button:dpleft'},
-					moveRight = {'key:right', 'key:d', 'axis:leftx+', 'button:dpright'},
-					moveUp    = {'key:up', 'key:w', 'axis:lefty-', 'button:dpup'},
-					moveDown  = {'key:down', 'key:s', 'axis:lefty+', 'button:dpdown'},
-					aimLeft   = {'axis:rightx-'},
-					aimRight  = {'axis:rightx+'},
-					aimUp     = {'axis:righty-'},
-					aimDown   = {'axis:righty+'},
-					grab      = {'key:space', 'mouse:1', 'button:a', 'button:rightshoulder', 'axis:triggerright+'},
-					boost     = {'key:lctrl', 'mouse:2', 'button:b', 'button:leftshoulder', 'axis:triggerleft+'},
-				},
-				pairs = {
-					move = {'moveLeft', 'moveRight', 'moveUp', 'moveDown'},
-					aim =  {'aimLeft', 'aimRight', 'aimUp', 'aimDown'},
-				},
-				deadzone = 0.2,
-				joystick = love.joystick.getJoysticks()[1],
-			}
+			mass = config.player.body.mass,
+			heat = 0,
+			input = self.input
 		}
+		;(self as table).player = entity
 		self.world:addEntity(entity)
 		self.camera = cam11(pos.x, pos.y, 1, 0, 0, 0, gw, gh)
 	end

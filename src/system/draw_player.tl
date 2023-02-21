@@ -6,6 +6,7 @@ local record Entity
 	pos: vec2
 	lastPos: vec2
 	aim: vec2
+	heat: number
 	target: Target
 end
 
@@ -22,13 +23,12 @@ function system:process(entity: Entity, _: number)
 	local pos = entity.pos
 	
 	-- Reticle
-	local aim = entity.aim * 100 + pos
-	local col = color.player
-	love.graphics.setColor(col[1], col[2], col[3], 0.5)
-	love.graphics.circle('fill', aim.x, aim.y, 12, 32)
+	local aim = entity.aim * config.player.reticle.distance + pos
+	love.graphics.setColor(color.withAlpha(color.player, 0.5))
+	love.graphics.circle('fill', aim.x, aim.y, config.player.reticle.radius, 32)
 	
 	-- Body
-	love.graphics.setColor(color.player)
+	love.graphics.setColor(color.lerp(entity.heat, color.player, color.hot))
 	
 	local pcount: integer = 128
 	local vel = (entity.pos - entity.lastPos) / FRAME_TIME
@@ -48,19 +48,19 @@ function system:process(entity: Entity, _: number)
 				dot = 0
 			end
 			local offset = util.lerp(dot ^ 2, 0.0, mag / 50)
-			local point = pnormal * 24 - normal * offset
+			local point = pnormal * config.player.body.radius - normal * offset
 			points[i * 2 + 1] = point.x + entity.pos.x
 			points[i * 2 + 2] = point.y + entity.pos.y
 		end
 		love.graphics.polygon('fill', points)
 	else
-		love.graphics.circle('fill', pos.x, pos.y, 24, pcount)
+		love.graphics.circle('fill', pos.x, pos.y, config.player.body.radius, pcount)
 	end
 	
 	-- Target indicator
 	if entity.target then
 		local tpos = entity.target.pos
-		love.graphics.setColor(col[1], col[2], col[3], 0.5)
+		love.graphics.setColor(color.withAlpha(color.player, 0.5))
 		love.graphics.setLineWidth(3)
 		love.graphics.circle('line', tpos.x, tpos.y, 32, 32)
 	end

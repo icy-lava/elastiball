@@ -8,13 +8,14 @@ local record Entity
 	lastPos: vec2
 	input: baton.Player
 	aim: vec2
+	heat: number
 	target: Target
 	link: table
 end
 
 local system: tiny.System<Entity> = tiny.processingSystem()
 
-system.filter = tiny.requireAll('pos', 'lastPos', 'input', 'aim')
+system.filter = tiny.requireAll('pos', 'lastPos', 'input', 'heat', 'aim')
 local pointSystem = require 'system.point'
 
 function system:process(entity: Entity, dt: number)
@@ -27,9 +28,17 @@ function system:process(entity: Entity, dt: number)
 	if entity.input:getActiveDevice() == 'joy' then
 		entity.aim = vec2(entity.input:get('aim'))
 	else
-		entity.aim = entity.aim + util.mouseRel * 0.01
+		entity.aim = entity.aim + util.mouseRel * config.mouse.baseSensitivity
 		entity.aim.length = math.min(entity.aim.length, 1)
 	end
+	
+	if entity.input:down 'boost' then
+		entity.heat = math.min(entity.heat + dt / config.player.heat.up, 1)
+	else
+		entity.heat = math.max(entity.heat - dt / config.player.heat.down, 0)
+	end
+	local vnormal = (entity.pos - entity.lastPos).normalized
+	entity.pos = entity.pos + vnormal * dt ^ 2 * 100 * entity.heat
 	
 	if not entity.link then
 		local target: Target

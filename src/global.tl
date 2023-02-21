@@ -76,6 +76,8 @@ else
 	log.level = 'fatal'
 end
 
+global baton = require 'baton'
+global config = require 'config'
 global vec2 = require 'brinevector'
 global GRAVITY = vec2(0, 300)
 
@@ -84,7 +86,6 @@ global roomy = require 'roomy'
 global scene = roomy.new()
 global tiny = require 'tiny'
 global vivid = require 'vivid'
-global baton = require 'baton'
 global util = require 'util'
 global color = require 'color'
 global filter = require 'system.filter'

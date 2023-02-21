@@ -1,3 +1,4 @@
+require 'love.joystick'
 require 'global'
 
 function love.conf(t)

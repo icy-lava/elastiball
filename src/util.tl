@@ -10,6 +10,17 @@ function util.damp<T>(smoothing: number, dt: number, a: T, b: T): T
 	return util.lerp(1 - smoothing ^ dt, a, b)
 end
 
+function util.round(num: number): integer
+	return math.floor(num + 0.5)
+end
+
+function util.crect(mode: love.graphics.DrawMode, x: number, y: number, width: number, height: number, round: number)
+	local x1, y1 = x - width / 2, y - height / 2
+	local x2, y2 = x1 + width, y1 + height
+	x1, y1, x2, y2 = util.round(x1), util.round(y1), util.round(x2), util.round(y2)
+	love.graphics.rectangle(mode, x1, y1, x2 - x1, y2 - y1, round)
+end
+
 function util.drawSystem<T>(): tiny.System<T>
 	local system: tiny.System<T> = tiny.processingSystem()
 	local temp = system as table
