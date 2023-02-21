@@ -1,14 +1,6 @@
-local record Entity
-	lastPos: vec2
-	pos: vec2
-	pinned: boolean
-end
+local system = util.processingSystem(typedef.VelocityEntity)
 
-local system: tiny.System<Entity> = tiny.processingSystem()
-
-system.filter = tiny.requireAll('pos', 'lastPos')
-
-function system:process(entity: Entity, _: number)
+function system:process(entity: typedef.VelocityEntity, _: number)
 	if not entity.pinned then
 		entity.pos, entity.lastPos = entity.pos * 2 - entity.lastPos, entity.pos
 	end

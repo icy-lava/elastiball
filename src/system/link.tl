@@ -1,24 +1,6 @@
-local record Object
-	pos: vec2
-	lastPos: vec2
-	mass: number
-	pinned: boolean
-end
+local system = util.processingSystem(typedef.LinkEntity)
 
-local record Entity
-	linkA: Object
-	linkB: Object
-	distance: number
-	error: number
-	inStrength: number
-	outStrength: number
-end
-
-local system: tiny.System<Entity> = tiny.processingSystem()
-
-system.filter = tiny.requireAll('linkA', 'linkB', 'distance')
-
-function system:process(entity: Entity, dt: number)
+function system:process(entity: typedef.LinkEntity, dt: number)
 	local a, b = entity.linkA, entity.linkB
 	local dpos = b.pos - a.pos
 	local ddist = dpos.length

@@ -1,24 +1,7 @@
-local record Target
-	pos: vec2
-	pinned: boolean
-end
-
-local record Entity
-	pos: vec2
-	lastPos: vec2
-	input: baton.Player
-	aim: vec2
-	heat: number
-	target: Target
-	link: table
-end
-
-local system: tiny.System<Entity> = tiny.processingSystem()
-
-system.filter = tiny.requireAll('pos', 'lastPos', 'input', 'heat', 'aim')
+local system = util.processingSystem(typedef.InputEntity)
 local pointSystem = require 'system.point'
 
-function system:process(entity: Entity, dt: number)
+function system:process(entity: typedef.InputEntity, dt: number)
 	entity.input:update()
 	entity.pos = entity.pos + vec2(entity.input:get 'move') * dt ^ 2 * 100
 	
@@ -41,7 +24,7 @@ function system:process(entity: Entity, dt: number)
 	entity.pos = entity.pos + vnormal * dt ^ 2 * 100 * entity.heat
 	
 	if not entity.link then
-		local target: Target
+		local target: entity.target
 		if entity.aim.length >= 0.3 then
 			local naim = entity.aim.normalized
 			local err = 1 / 0
@@ -51,7 +34,7 @@ function system:process(entity: Entity, dt: number)
 				if sys.filter == pointSystem.filter then
 					-- print(1)
 					for _, e in ipairs(sys.entities) do
-						local t = e as Target
+						local t = e as entity.target
 						if not t.pinned then
 							local delta = t.pos - entity.pos
 							local dot = delta.normalized:dot(naim)
@@ -76,17 +59,17 @@ function system:process(entity: Entity, dt: number)
 	
 	if not entity.link and entity.target and entity.input:down 'grab' then
 		entity.link = {
-			linkA = entity,
-			linkB = entity.target,
+			linkA = entity as typedef.ObjectEntity,
+			linkB = entity.target as typedef.ObjectEntity,
 			distance = (entity.pos - entity.target.pos).length,
 			inStrength = 0,
 			outStrength = 0.1
 		}
-		self.world:addEntity(entity.link)
+		self.world:addEntity(entity.link as tiny.Entity)
 	end
 	
 	if entity.link and not entity.input:down 'grab' then
-		self.world:removeEntity(entity.link)
+		self.world:removeEntity(entity.link as tiny.Entity)
 		entity.link = nil
 	end
 end

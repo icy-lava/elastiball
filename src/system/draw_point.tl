@@ -1,11 +1,4 @@
-local record Entity
-	pos: vec2
-	pinned: boolean
-end
-
-local system: tiny.System<Entity> = util.drawSystem()
-
-system.filter = tiny.requireAll('pos', 'pinned')
+local system = util.drawSystem(typedef.PointEntity)
 
 function system:preProcess(_: number)
 	love.graphics.push 'all'
@@ -13,7 +6,7 @@ function system:preProcess(_: number)
 	love.graphics.setColor(1, 1, 1, 1)
 end
 
-function system:process(entity: Entity, _: number)
+function system:process(entity: typedef.PointEntity, _: number)
 	local pos = entity.pos
 	love.graphics.setColor(color.point)
 	love.graphics.circle('line', pos.x, pos.y, 20, 32)

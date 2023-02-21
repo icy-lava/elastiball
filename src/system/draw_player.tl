@@ -1,25 +1,11 @@
-local record Target
-	pos: vec2
-end
-
-local record Entity
-	pos: vec2
-	lastPos: vec2
-	aim: vec2
-	heat: number
-	target: Target
-end
-
-local system: tiny.System<Entity> = util.drawSystem()
-
-system.filter = tiny.requireAll('pos', 'lastPos', 'aim', 'player')
+local system = util.drawSystem(typedef.DrawnPlayerEntity)
 
 function system:preProcess(_: number)
 	love.graphics.push 'all'
 	love.graphics.setColor(1, 1, 1, 1)
 end
 
-function system:process(entity: Entity, _: number)
+function system:process(entity: typedef.DrawnPlayerEntity, _: number)
 	local pos = entity.pos
 	
 	-- Reticle

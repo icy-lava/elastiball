@@ -21,8 +21,48 @@ function util.crect(mode: love.graphics.DrawMode, x: number, y: number, width: n
 	love.graphics.rectangle(mode, x1, y1, x2 - x1, y2 - y1, round)
 end
 
-function util.drawSystem<T>(): tiny.System<T>
-	local system: tiny.System<T> = tiny.processingSystem()
+function util.system<T>(entity: T): tiny.System<T>
+	local filt = typedef.filter[entity as nil]
+	if not filt then
+		error(string.format('unknown entity type (%s): %q', type(entity), entity))
+	end
+	local syst: tiny.System<T> = tiny.system()
+	syst.filter = filt
+	return syst
+end
+
+function util.processingSystem<T>(entity: T): tiny.System<T>
+	local filt = typedef.filter[entity as nil]
+	if not filt then
+		error(string.format('unknown entity type (%s): %q', type(entity), entity))
+	end
+	local syst: tiny.System<T> = tiny.processingSystem()
+	syst.filter = filt
+	return syst
+end
+
+function util.sortedSystem<T>(entity: T): tiny.System<T>
+	local filt = typedef.filter[entity as nil]
+	if not filt then
+		error(string.format('unknown entity type (%s): %q', type(entity), entity))
+	end
+	local syst: tiny.System<T> = tiny.sortedSystem()
+	syst.filter = filt
+	return syst
+end
+
+function util.sortedProcessingSystem<T>(entity: T): tiny.System<T>
+	local filt = typedef.filter[entity as nil]
+	if not filt then
+		error(string.format('unknown entity type (%s): %q', type(entity), entity))
+	end
+	local syst: tiny.System<T> = tiny.sortedProcessingSystem()
+	syst.filter = filt
+	return syst
+end
+
+function util.drawSystem<T>(entity: T): tiny.System<T>
+	local system: tiny.System<T> = util.processingSystem(entity)
 	local temp = system as table
 	temp.draw = true
 	return system

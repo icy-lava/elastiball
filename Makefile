@@ -9,7 +9,7 @@ endif
 # SOURCE_DIR:=$(shell luajit -e "print(require'tlconfig'.source_dir)")
 # BUILD_DIR:=$(shell luajit -e "print(require'tlconfig'.build_dir)")
 SOURCE_LUA:=$(shell busybox find src -type f | busybox grep "\.lua$$")
-SOURCE_TEAL:=$(shell busybox find src -type f | busybox grep "\.tl$$" | busybox grep -v "\.d\.tl$$")
+SOURCE_TEAL:=src/typedef.tl $(shell busybox find src -type f | busybox grep "\.tl$$" | busybox grep -v "\.d\.tl$$")
 
 SOURCE_LEVEL:=$(shell busybox find asset/level -type f | busybox grep "\.json$$")
 
@@ -19,6 +19,7 @@ LIBRARY_LUA:=$(shell busybox find lib -type f | busybox grep "\.lua$$")
 
 GENERATED_LUA:=$(patsubst src/%.tl,build/raw/%.lua,$(SOURCE_TEAL))
 COPIED_LUA:=$(patsubst src/%.lua,build/raw/%.lua,$(SOURCE_LUA)) $(patsubst lib/%.lua,build/raw/%.lua,$(LIBRARY_LUA))
+
 COMPILED_FILES:=$(GENERATED_LUA) $(COPIED_LUA)
 COPIED_ASSETS:=$(patsubst asset/%,build/raw/asset/%,$(SOURCE_ASSETS))
 ALL_FILES:=$(COMPILED_FILES) $(COPIED_ASSETS)
@@ -26,7 +27,7 @@ ALL_FILES:=$(COMPILED_FILES) $(COPIED_ASSETS)
 ARTIFACT_LOVE:=build/game.love
 ARTIFACT_WEB:=build/game-web
 
-.PHONY: run editor serve compile assets clean love web
+.PHONY: run editor serve codegen compile assets clean love web
 
 run: $(ALL_FILES)
 	cd build/raw && $(LOVE) . --developer --display 2
@@ -36,6 +37,8 @@ editor: $(ALL_FILES)
 
 serve: $(ARTIFACT_WEB)
 	cd build/game-web && python -m http.server --bind 127.0.0.1
+
+codegen: src/typedef.tl
 
 compile: $(COMPILED_FILES)
 
@@ -64,6 +67,12 @@ build/raw/%.lua: src/%.lua
 build/raw/%.lua: lib/%.lua
 	busybox dirname $@ | busybox xargs mkdir -p
 	busybox cp $< $@
+
+src/typedef.tl: typedef.tl
+	tl gen typedef.tl
+	tl run typedef.lua gen > $@
+	busybox rm typedef.lua
+	tl check -q $@
 
 $(GENERATED_LUA): $(SOURCE_TEAL) tlconfig.lua
 	busybox mkdir -p build/raw

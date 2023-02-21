@@ -85,6 +85,7 @@ global json = require 'json'
 global roomy = require 'roomy'
 global scene = roomy.new()
 global tiny = require 'tiny'
+global typedef = require 'typedef'
 global vivid = require 'vivid'
 global util = require 'util'
 global color = require 'color'
