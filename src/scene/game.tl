@@ -1,10 +1,15 @@
 local record Game
 	camera: cam11.Camera
+	lastCamPos: vec2
 	world: tiny.World
 	levelName: string
 	input: baton.Player
 	player: typedef.InputEntity
 	levelEnd: boolean
+	levelData: level.Data
+	fadeCanvasA: love.graphics.Canvas
+	fadeCanvasB: love.graphics.Canvas
+	canvasPad: integer
 	__index: Game
 end
 Game.__index = Game
@@ -21,13 +26,46 @@ end
 function Game:draw()
 	local gw, gh = love.graphics.getDimensions()
 	
+	-- FIXME: This doesn't take into account rotation and zoom changes
+	local newCamPos = vec2(self.camera:getPos())
+	
+	local c1 = vec2(self.camera:toScreen(self.lastCamPos:split()))
+	local c2 = vec2(self.camera:toScreen(newCamPos:split()))
+	local camDelta = c2 - c1
+	
+	self.lastCamPos = newCamPos
+	
+	self.fadeCanvasA, self.fadeCanvasB = self.fadeCanvasB, self.fadeCanvasA
+	love.graphics.setCanvas(self.fadeCanvasA)
+	love.graphics.setColor(1, 1, 1, 1)
+	love.graphics.draw(self.fadeCanvasB as love.graphics.Drawable, -camDelta.x, -camDelta.y)
+	
+	love.graphics.setColor(color.withAlpha(color.background, 0.1))
+	love.graphics.rectangle('fill', 0, 0, gw, gh)
+	
+	-- self.world:update(0, function(_: tiny.World, system: tiny.System<any>): boolean
+	-- 	return not not (system as table).draw
+	-- end)
+	
 	self.camera:attach(true)
-	love.graphics.clear(color.background)
 	
 	self.world:update(0, function(_: tiny.World, system: tiny.System<any>): boolean
+		if system.filter ~= require 'system.draw_player'.filter then return false end
 		return not not (system as table).draw
 	end)
 	
+	self.camera:detach()
+	
+	love.graphics.setCanvas()
+	
+	love.graphics.setColor(1, 1, 1, 1)
+	love.graphics.draw(self.fadeCanvasA as love.graphics.Drawable, -self.canvasPad, -self.canvasPad)
+	
+	self.camera:attach(true)
+	self.world:update(0, function(_: tiny.World, system: tiny.System<any>): boolean
+		if system.filter == require 'system.draw_player'.filter then return false end
+		return not not (system as table).draw
+	end)
 	self.camera:detach()
 	
 	do -- Heat bar
@@ -66,6 +104,15 @@ function Game:resize(width: integer, height: integer)
 	
 	self.camera:setZoom(math.min(fitWidth / WIDTH, fitHeight / HEIGHT))
 	self.camera:setViewport(x, y, fitWidth, fitHeight)
+	local options = {
+		msaa = 8,
+		format = 'rgba16f',
+	}
+	if self.fadeCanvasA then ((self.fadeCanvasA as table).release as function)(self.fadeCanvasA) end
+	if self.fadeCanvasB then ((self.fadeCanvasA as table).release as function)(self.fadeCanvasB) end
+	self.fadeCanvasA = love.graphics.newCanvas(width + self.canvasPad * 2, height + self.canvasPad * 2, options)
+	self.fadeCanvasB = love.graphics.newCanvas(width + self.canvasPad * 2, height + self.canvasPad * 2, options)
+	collectgarbage()
 end
 
 function Game:mousemoved(_: integer, _: integer, dx: integer, dy: integer)
@@ -110,12 +157,13 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	local levelData: level.Data
 	if levelInfo is string then
 		self.levelName = levelInfo
-		local levelString = love.filesystem.read(string.format('asset/level/%d.json', self.levelName))
+		local levelString = love.filesystem.read(string.format('asset/level/%s.json', self.levelName))
 		levelData = level.decode(levelString)
 	else
 		levelData = levelInfo
 		self.levelName = 'live'
 	end
+	self.levelData = levelData
 	
 	local points: {level.Data.UID:{string:any}} = {}
 	
@@ -176,6 +224,8 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	
 	self.world:refresh()
 	
+	self.canvasPad = 0
+	self.lastCamPos = vec2(self.camera:getPos())
 	self:resize(gw, gh)
 	
 	love.mouse.setRelativeMode(true)
@@ -192,7 +242,11 @@ end
 function Game:keypressed(key: string)
 	if cli.dev then
 		if key == 'r' and love.keyboard.isDown('lctrl', 'rctrl') then
-			scene:enter(Game.new(), self.levelName)
+			if key == 'escape' and self.levelName == 'live' then
+				scene:enter(Game.new(), self.levelData)
+			else
+				scene:enter(Game.new(), self.levelName)
+			end
 			return
 		end
 		if key == 'escape' and self.levelName == 'live' then

@@ -32,7 +32,6 @@ function system:process(entity: typedef.InputEntity, dt: number)
 			-- FIXME: there's not a straightforward way to access points from in here, so for now this hack will do
 			for _, sys in ipairs(self.world.systems as {tiny.System<any>}) do
 				if sys.filter == pointSystem.filter then
-					-- print(1)
 					for _, e in ipairs(sys.entities) do
 						local t = e as entity.target
 						if not t.pinned then
@@ -61,9 +60,9 @@ function system:process(entity: typedef.InputEntity, dt: number)
 		entity.link = {
 			linkA = entity as typedef.ObjectEntity,
 			linkB = entity.target as typedef.ObjectEntity,
-			distance = (entity.pos - entity.target.pos).length,
+			distance = 50,--(entity.pos - entity.target.pos).length,
 			inStrength = 0,
-			outStrength = 0.1
+			outStrength = 0.02
 		}
 		self.world:addEntity(entity.link as tiny.Entity)
 	end

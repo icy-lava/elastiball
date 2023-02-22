@@ -125,20 +125,21 @@ function love.run()
 
 		-- Call update and draw
 		if love.update then
+			local updated = false
 			while dt >= FRAME_TIME do
 				love.update(FRAME_TIME)
 				dt = dt - FRAME_TIME
+				updated = true
+				util.mouseRel = vec2()
 			end
-		end
-		-- love.update(dt)
-		
-		if love.graphics and love.graphics.isActive() then
-			love.graphics.origin()
-			-- love.graphics.clear(love.graphics.getBackgroundColor())
-
-			scene:emit('draw')
-
-			love.graphics.present()
+			
+			if updated and love.graphics and love.graphics.isActive() then
+				love.graphics.origin()
+	
+				scene:emit('draw')
+	
+				love.graphics.present()
+			end
 		end
 
 		if love.timer then love.timer.sleep(0.002) end
