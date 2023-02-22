@@ -71,7 +71,7 @@ if cli.show_console and (love as table)._openConsole then
 end
 
 if cli.dev then
-	log.outfile = '../log.txt'
+	log.outfile = '../../log.txt'
 else
 	log.level = 'fatal'
 end
@@ -91,3 +91,4 @@ global util = require 'util'
 global color = require 'color'
 global filter = require 'system.filter'
 global level = require 'level'
+global cargo = require 'cargo'

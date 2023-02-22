@@ -34,6 +34,15 @@ function love.conf(t)
 end
 
 function love.load()
+	asset = {
+		level = cargo.init {
+			dir = 'asset/level',
+			loaders = {
+				json = level.load
+			}
+		},
+		font = cargo.init 'asset/font'
+	}
 	cam11 = require 'cam11'
 	scene:hook {
 		exclude = {

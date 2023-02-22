@@ -33,4 +33,9 @@ function level.encode(data: level.Data): string
 	return json.encode(data as json.Value)
 end
 
+function level.load(path: string): level.Data
+	local data = love.filesystem.read(path)
+	return level.decode(data)
+end
+
 return level
