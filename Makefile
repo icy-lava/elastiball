@@ -1,8 +1,15 @@
 ifeq ($(OS),Windows_NT)
+# Windows
 LOVE:=lovec
 LOVE_JS:=$(shell busybox which love.js | busybox xargs basename)
 else
+ifneq ($(shell stat /proc/sys/fs/binfmt_misc/WSLInterop 2>/dev/null),)
+# WSL
+LOVE:=lovec.exe
+else
+# Posix
 LOVE:=love
+endif
 LOVE_JS:=love.js
 endif
 
@@ -76,4 +83,4 @@ src/typedef.tl: typedef.tl
 
 $(GENERATED_LUA): $(SOURCE_TEAL) tlconfig.lua
 	busybox mkdir -p build/raw
-	tl build
+	tl build --wdisable redeclaration
