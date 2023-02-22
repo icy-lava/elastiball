@@ -8,14 +8,14 @@ end
 function system:process(entity: typedef.LinkEntity, _: number)
 	local apos, bpos = entity.linkA.pos, entity.linkB.pos
 	local delta = (bpos - apos).normalized
-	apos = apos + delta * 20
-	bpos = bpos - delta * 20
+	apos = apos + delta * config.point.radius
+	bpos = bpos - delta * config.point.radius
 	love.graphics.setColor(color.link)
 	
 	local errLen = -(entity.error or 0) / 50
 	local thiccnessMult = 2 ^ math.atan(errLen)
 	
-	love.graphics.setLineWidth(8 * thiccnessMult)
+	love.graphics.setLineWidth(config.link.lineWidth * thiccnessMult)
 	love.graphics.line(apos.x, apos.y, bpos.x, bpos.y)
 end
 

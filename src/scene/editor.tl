@@ -26,7 +26,7 @@ local record Editor
 	selected: {Data.UID:boolean}
 	
 	enum Mode
-		'select' 'move' 'point' 'pin' 'link' 'player'
+		'select' 'move' 'point' 'pin' 'link' 'player' 'end'
 	end
 	mode: Mode
 	
@@ -40,6 +40,7 @@ local record Editor
 	end
 	
 	font: love.graphics.Font
+	bigFont: love.graphics.Font
 	data: Data
 	gridStep: vec2
 	filename: string
@@ -65,7 +66,7 @@ function EditorModal.new(): EditorModal
 	return setmetatable({}, EditorModal)
 end
 
-local modes: {Editor.Mode} = {'select', 'move', 'point', 'pin', 'link', 'player'}
+local modes: {Editor.Mode} = {'select', 'move', 'point', 'pin', 'link', 'player', 'end'}
 local modeIndices: {Editor.Mode:integer} = {}
 for i, mode in ipairs(modes) do
 	modeIndices[mode] = i
@@ -190,12 +191,14 @@ function Editor:enter()
 	self.camera = cam11(0, 0, 1, 0, 0, 0)
 	self.mode = modes[1]
 	self.font = love.graphics.newFont(16)
+	self.bigFont = asset.font['Baloo2-Medium'](48)
 	self.font:setLineHeight(1.25)
 	self.data = {
 		points = {},
 		links = {},
-		player = {x = 0, y = 0},
+		player = pos2(0, 0),
 		lastUID = 0,
+		levelEnd = pos2(100, 0)
 	}
 	self.selected = {}
 	self.gridStep = vec2(15, 15)
@@ -267,7 +270,7 @@ function Editor:mousepressed(x: integer, y: integer, button: integer)
 			return
 		end
 		
-		if self.mode == 'player' then
+		if self.mode == 'player' or self.mode == 'end' then
 			self:deselectAll()
 		end
 	end
@@ -346,6 +349,12 @@ function Editor:update(_: number)
 			self.data.player = pos2(self.camera:toWorld(love.mouse.getPosition()))
 		end
 	end
+	
+	if self.mode == 'end' then
+		if love.mouse.isDown(1) then
+			self.data.levelEnd = pos2(self.camera:toWorld(love.mouse.getPosition()))
+		end
+	end
 end
 
 function Editor:resize()
@@ -357,54 +366,70 @@ function Editor:draw()
 	love.graphics.push 'all'
 	self.camera:attach()
 	
-	love.graphics.clear(vivid.LCHtoRGB(10, 20, 230, 1))
-	
-	do -- Draw points
-		local hpoint = self:getHoveredPoint()
-		love.graphics.setLineWidth(3)
-		for uid, point in pairs(self.data.points) do
-			if hpoint and hpoint.uid == uid then
-				love.graphics.setColor(vivid.LCHtoRGB(95, 60, 240))
-			elseif self.selected[uid] then
-				love.graphics.setColor(vivid.LCHtoRGB(60, 80, 240))
-			else
-				love.graphics.setColor(vivid.LCHtoRGB(50, 10, 240))
-			end
-			
-			love.graphics.circle('line', point.pos.x, point.pos.y, 10)
-			if point.pinned then
-				love.graphics.circle('fill', point.pos.x, point.pos.y, 5)
-			end
-		end
-	end
+	love.graphics.clear(color.background)
 	
 	do -- Draw links
-		love.graphics.setLineWidth(3)
-		love.graphics.setColor(vivid.LCHtoRGB(50, 30, 240, 0.2))
+		love.graphics.setLineWidth(config.link.lineWidth)
+		love.graphics.setColor(color.link)
 		for _, link in pairs(self.data.links) do
-			local a = self.data.points[link.a].pos
-			local b = self.data.points[link.b].pos
+			local a = pos2vec(self.data.points[link.a].pos)
+			local b = pos2vec(self.data.points[link.b].pos)
+			local delta = (b - a).normalized
+			a = a + delta * config.point.radius
+			b = b - delta * config.point.radius
 			love.graphics.line(a.x, a.y, b.x, b.y)
 		end
 		
 		-- Draw current link
 		if self.link then
-			local a = self.data.points[self.link.startUID].pos
-			local b = pos2(self.camera:toWorld(love.mouse.getPosition()))
+			love.graphics.setColor(color.labLerp(0.5, color.link, color.white))
+			local a = pos2vec(self.data.points[self.link.startUID].pos)
+			local b = vec2(self.camera:toWorld(love.mouse.getPosition()))
+			local delta = (b - a).normalized
+			a = a + delta * config.point.radius
+			-- b = b - delta * config.point.radius
 			local hpoint = self:getHoveredPoint()
 			if hpoint and hpoint.uid ~= self.link.startUID then
-				b = hpoint.pos
+				b = pos2vec(hpoint.pos)
 			end
 			love.graphics.line(a.x, a.y, b.x, b.y)
 		end
 	end
 	
+	do -- Draw points
+		local hpoint = self:getHoveredPoint()
+		love.graphics.setLineWidth(config.point.lineWidth)
+		for uid, point in pairs(self.data.points) do
+			if hpoint and hpoint.uid == uid then
+				love.graphics.setColor(color.labLerp(0.5, color.point, {vivid.LCHtoRGB(95, 30, 240)}))
+			elseif self.selected[uid] then
+				love.graphics.setColor(color.labLerp(0.5, color.point, {vivid.LCHtoRGB(70, 90, 240)}))
+			else
+				love.graphics.setColor(color.point)
+			end
+			
+			love.graphics.circle('line', point.pos.x, point.pos.y, config.point.radius)
+			if point.pinned then
+				love.graphics.circle('fill', point.pos.x, point.pos.y, config.point.pinRadius)
+			end
+		end
+	end
+	
 	do -- Draw player
 		local pos = self.data.player
-		love.graphics.setColor(1, 1, 1, 1)
-		love.graphics.setLineWidth(5)
-		love.graphics.circle('line', pos.x, pos.y, 16)
-		love.graphics.printf({{1, 1, 1, 1}, 'P'}, self.font, pos.x - 16, math.floor(pos.y - self.font:getHeight() / 2), 32, 'center')
+		love.graphics.setColor(color.player)
+		love.graphics.setLineWidth(3)
+		love.graphics.circle('fill', pos.x, pos.y, config.player.body.radius, 64)
+		love.graphics.setColor(color.background)
+		love.graphics.printf({{1, 1, 1, 1}, 'P'}, self.bigFont, pos.x - 16, math.floor(pos.y - self.bigFont:getHeight() / 2), 32, 'center')
+	end
+	
+	do -- Draw level end
+		local pos = self.data.levelEnd
+		love.graphics.setColor(color.exit)
+		love.graphics.setLineWidth(8)
+		love.graphics.circle('line', pos.x, pos.y, config.exit.radius, 64)
+		love.graphics.printf({{1, 1, 1, 1}, 'E'}, self.bigFont, pos.x - 16, math.floor(pos.y - self.bigFont:getHeight() / 2), 32, 'center')
 	end
 	
 	self.camera:detach()
@@ -430,9 +455,9 @@ function Editor:draw()
 	do -- Draw mode info
 		local textArray: {table|string} = {}
 		for i, mode in ipairs(modes) do
-			local col: color.RGBA = {vivid.LCHtoRGB(40, 20, 10, 0.8)}
+			local col: color.RGBA = {vivid.LCHtoRGB(10, 20, 10, 0.8)}
 			if self.mode == mode then
-				col = {vivid.LCHtoRGB(60, 30, 240, 0.9)}
+				col = {vivid.LCHtoRGB(70, 50, 240, 0.9)}
 			end
 			
 			local text = string.format('%d: %s\n', i, mode)
@@ -498,23 +523,30 @@ function EditorModal:keypressed(key: string)
 end
 
 function Editor:resume(modal: EditorModal, data: string)
-	if modal.ctx.op == 'save' then
-		self:doSave(data)
-	elseif modal.ctx.op == 'open' then
-		self:doOpen(data)
-	else
-		log.warn('unknown op: ' .. tostring(modal.ctx.op))
+	if modal.ctx then
+		if modal.ctx.op == 'save' then
+			self:doSave(data)
+		elseif modal.ctx.op == 'open' then
+			self:doOpen(data)
+		else
+			log.warn('unknown op: ' .. tostring(modal.ctx.op))
+		end
 	end
 end
 
 function Editor:keypressed(key: string)
+	if key == 'f5' then
+		scene:push(require 'scene.game'.new(), self.data)
+		return
+	end
+	
 	local num: integer = tonumber(key)
 	if num and modes[num] then
 		self.mode = modes[num]
 		return
 	end
 	
-	if key == 'delete' then
+	if key == 'delete' or key == 'x' then
 		self:deleteSelection()
 		return
 	end

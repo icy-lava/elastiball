@@ -19,6 +19,7 @@ local record level
 		end
 		
 		player: Position
+		levelEnd: Position
 		points: {UID:Point}
 		links: {UID:Link}
 		lastUID: integer
@@ -26,7 +27,9 @@ local record level
 end
 
 function level.decode(str: string): level.Data
-	return json.decode(str) as level.Data
+	local data = json.decode(str) as level.Data
+	data.levelEnd = data.levelEnd or {x = 0, y = 0}
+	return data
 end
 
 function level.encode(data: level.Data): string

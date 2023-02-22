@@ -12,6 +12,7 @@ local color = {
 	player: RGB = hex '#c54789',
 	hot: RGB = hex '#f70041',
 	heatbar: RGB = hex '#969696',
+	exit: RGB = hex '#222222',
 	background: RGB = hex '#6d273d',
 	point: RGB = hex '#408d9d',
 	link: RGB = hex '#465b63',

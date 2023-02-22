@@ -14,6 +14,7 @@ local components = {
 	linkB = 'ObjectEntity',
 	target = 'TargetEntity',
 	link = 'LinkEntity',
+	endSignal = 'signal<string>',
 }
 
 local compKeys: {string} = {}; for k in pairs(components) do table.insert(compKeys, k) end
@@ -31,6 +32,7 @@ local entities = {
 	gravity = 'pos lastPos pinned?',
 	link = 'linkA linkB distance error? inStrength? outStrength?',
 	input = 'pos lastPos input aim heat mass? target? link?',
+	levelEnd = 'pos endSignal',
 }
 
 local fieldTemplate = "%s: %s"

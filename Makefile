@@ -16,6 +16,7 @@ endif
 SOURCE_LUA:=$(shell busybox find src -type f | busybox grep "\.lua$$")
 SOURCE_TEAL:=src/typedef.tl $(shell busybox find src -type f | busybox grep "\.tl$$" | busybox grep -v "\.d\.tl$$")
 
+SOURCE_ASSET:=$(shell busybox find asset -type f)
 # SOURCE_LEVEL:=$(shell busybox find asset/level -type f | busybox grep "\.json$$")
 
 LIBRARY_LUA:=$(shell busybox find lib -type f | busybox grep "\.lua$$")
@@ -47,10 +48,10 @@ codegen: src/typedef.tl
 compile: $(COMPILED_FILES)
 
 assets: build/raw/asset
-build/raw/asset: asset
+build/raw/asset: $(SOURCE_ASSET)
 	mkdir -p build/raw
 	rm -rf build/raw/asset
-	busybox cp -r $< $@
+	busybox cp -r asset $@
 
 love: $(ARTIFACT_LOVE)
 $(ARTIFACT_LOVE): $(ALL_FILES)

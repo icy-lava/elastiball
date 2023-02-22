@@ -34,6 +34,7 @@ function love.conf(t)
 end
 
 function love.load()
+	cargo = require 'cargo'
 	asset = {
 		level = cargo.init {
 			dir = 'asset/level',

@@ -13,6 +13,14 @@ return {
 			distance = 100
 		}
 	},
+	point = {
+		radius = 20,
+		pinRadius = 10,
+		lineWidth = 6,
+	},
+	link = {
+		lineWidth = 8,
+	},
 	mouse = {
 		baseSensitivity = 0.01
 	},
@@ -35,5 +43,8 @@ return {
 		},
 		deadzone = 0.2,
 		joystick = love.joystick.getJoysticks()[1],
+	},
+	exit = {
+		radius = 300
 	}
 }

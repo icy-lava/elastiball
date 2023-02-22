@@ -5,7 +5,7 @@ local record tiny
 	
 	record World
 		entities: {Entity}
-		systems: {System}
+		systems: {System<any>}
 		
 		addEntity: function(self: World, entity: Entity): Entity
 		addSystem: function<E>(self: World, system: System<E>): System<E>

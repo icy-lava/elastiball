@@ -4,6 +4,7 @@ local record Game
 	levelName: string
 	input: baton.Player
 	player: typedef.InputEntity
+	levelEnd: boolean
 	__index: Game
 end
 Game.__index = Game
@@ -75,11 +76,12 @@ function Game:mousepressed(_: integer)
 	love.mouse.setRelativeMode(true)
 end
 
-function Game:enter(_: roomy.Scene, levelName: string)
+function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	local gw, gh = love.graphics.getDimensions() as (integer, integer)
 	
 	self.world = tiny.world()
 	
+	self.world:addSystem(util.instance(require 'system.player'))
 	self.world:addSystem(util.instance(require 'system.point'))
 	
 	self.world:addSystem(util.instance(require 'system.input'))
@@ -98,13 +100,22 @@ function Game:enter(_: roomy.Scene, levelName: string)
 	linkSystem.active = false
 	self.world:addSystem(linkSystem)
 	
+	self.world:addSystem(util.instance(require 'system.level_end'))
+	
 	self.world:addSystem(util.instance(require 'system.draw_link'))
 	self.world:addSystem(util.instance(require 'system.draw_point'))
 	self.world:addSystem(util.instance(require 'system.draw_player'))
+	self.world:addSystem(util.instance(require 'system.draw_level_end'))
 	
-	self.levelName = levelName
-	local levelString = love.filesystem.read(string.format('asset/level/%d.json', levelName))
-	local levelData = level.decode(levelString)
+	local levelData: level.Data
+	if levelInfo is string then
+		self.levelName = levelInfo
+		local levelString = love.filesystem.read(string.format('asset/level/%d.json', self.levelName))
+		levelData = level.decode(levelString)
+	else
+		levelData = levelInfo
+		self.levelName = 'live'
+	end
 	
 	local points: {level.Data.UID:{string:any}} = {}
 	
@@ -141,10 +152,26 @@ function Game:enter(_: roomy.Scene, levelName: string)
 			heat = 0,
 			input = self.input
 		}
-		;(self as table).player = entity
 		self.world:addEntity(entity as table)
 		self.camera = cam11(pos.x, pos.y, 1, 0, 0, 0, gw, gh)
 		self.player = entity
+	end
+	
+	do
+		local pos = vec2(levelData.levelEnd.x, levelData.levelEnd.y)
+		local sig: signal<string> = signal.new()
+		
+		local this = self
+		sig:connect(function()
+			this.levelEnd = true
+		end)
+		
+		local entity: typedef.LevelEndEntity = {
+			pos = pos.copy,
+			endSignal = sig,
+		}
+		self.world:addEntity(entity as table)
+		self.camera = cam11(pos.x, pos.y, 1, 0, 0, 0, gw, gh)
 	end
 	
 	self.world:refresh()
@@ -167,6 +194,9 @@ function Game:keypressed(key: string)
 		if key == 'r' and love.keyboard.isDown('lctrl', 'rctrl') then
 			scene:enter(Game.new(), self.levelName)
 			return
+		end
+		if key == 'escape' and self.levelName == 'live' then
+			scene:pop()
 		end
 	end
 	if key == 'escape' then
