@@ -36,6 +36,7 @@ local record InputEntity
 	input: baton.Player
 	lastPos: vec2
 	link: LinkEntity
+	mass: number
 	pos: vec2
 	target: TargetEntity
 end

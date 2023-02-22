@@ -3,6 +3,7 @@ local record Game
 	world: tiny.World
 	levelName: string
 	input: baton.Player
+	player: typedef.InputEntity
 	__index: Game
 end
 Game.__index = Game
@@ -12,12 +13,8 @@ function Game:update(dt: number)
 	self.world:update(dt, function(_: tiny.World, system: tiny.System<any>): boolean
 		return not (system as table).draw
 	end)
-	for _, entity in ipairs(self.world.entities) do
-		if entity.player then
-			local pos = entity.pos as vec2
-			self.camera:setPos(pos.x, pos.y)
-		end
-	end
+	local pos = self.player.pos as vec2
+	self.camera:setPos(pos.x, pos.y)
 end
 
 function Game:draw()
@@ -113,31 +110,30 @@ function Game:enter(_: roomy.Scene, levelName: string)
 	
 	for uid, point in pairs(levelData.points) do
 		local pos = vec2(point.pos.x, point.pos.y)
-		local entity: {string:any} = {
+		local entity: typedef.PointEntity = {
 			pos = pos.copy,
 			lastPos = pos.copy,
 			pinned = point.pinned,
 		}
-		self.world:addEntity(entity)
+		self.world:addEntity(entity as table)
 		points[uid] = entity
 	end
 	
 	for _, link in pairs(levelData.links) do
-		local a, b = points[link.a], points[link.b]
-		local entity: {string:any} = {
+		local a, b = points[link.a] as typedef.ObjectEntity, points[link.b] as typedef.ObjectEntity
+		local entity: typedef.LinkEntity = {
 			linkA = a,
 			linkB = b,
 			distance = (a.pos as vec2 - b.pos as vec2).length,
 		}
-		self.world:addEntity(entity)
+		self.world:addEntity(entity as table)
 	end
 	
 	self.input = config.input
 	
 	do
 		local pos = vec2(levelData.player.x, levelData.player.y)
-		local entity: {string:any} = {
-			player = true,
+		local entity: typedef.InputEntity = {
 			pos = pos.copy,
 			lastPos = pos.copy,
 			aim = vec2(1, 0),
@@ -146,8 +142,9 @@ function Game:enter(_: roomy.Scene, levelName: string)
 			input = self.input
 		}
 		;(self as table).player = entity
-		self.world:addEntity(entity)
+		self.world:addEntity(entity as table)
 		self.camera = cam11(pos.x, pos.y, 1, 0, 0, 0, gw, gh)
+		self.player = entity
 	end
 	
 	self.world:refresh()

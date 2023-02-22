@@ -30,7 +30,7 @@ local entities = {
 	velocity = 'pos lastPos pinned?',
 	gravity = 'pos lastPos pinned?',
 	link = 'linkA linkB distance error? inStrength? outStrength?',
-	input = 'pos lastPos input aim heat target? link?',
+	input = 'pos lastPos input aim heat mass? target? link?',
 }
 
 local fieldTemplate = "%s: %s"
