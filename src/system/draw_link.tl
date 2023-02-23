@@ -6,13 +6,14 @@ function system:preProcess(_: number)
 end
 
 function system:process(entity: typedef.LinkEntity, _: number)
-	local apos, bpos = entity.linkA.pos, entity.linkB.pos
+	local link = entity.link
+	local apos, bpos = link.a.pos, link.b.pos
 	local delta = (bpos - apos).normalized
 	apos = apos + delta * config.point.radius
 	bpos = bpos - delta * config.point.radius
 	love.graphics.setColor(color.link)
 	
-	local errLen = -(entity.error or 0) / 50
+	local errLen = -(link.error or 0) / 50
 	local thiccnessMult = 2 ^ math.atan(errLen)
 	
 	love.graphics.setLineWidth(config.link.lineWidth * thiccnessMult)

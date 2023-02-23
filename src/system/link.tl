@@ -1,11 +1,18 @@
 local system = util.processingSystem(typedef.LinkEntity)
 
 function system:process(entity: typedef.LinkEntity, dt: number)
-	local a, b = entity.linkA, entity.linkB
+	local link = entity.link
+	
+	-- FIXME: IDK why it sometimes keeps the player entity in this system when the link gets set to nil
+	if not link then
+		return
+	end
+	
+	local a, b = link.a, link.b
 	local dpos = b.pos - a.pos
 	local ddist = dpos.length
 	local normal = dpos / ddist
-	entity.error = ddist - entity.distance
+	link.error = ddist - link.distance
 	
 	local inf = 1 / 0
 	local massA = a.pinned and inf or a.mass or 1
@@ -23,14 +30,14 @@ function system:process(entity: typedef.LinkEntity, dt: number)
 	end
 	
 	local strength = 5000.0
-	if entity.error < 0 then
-		strength = strength * (entity.inStrength or 0.5)
+	if link.error < 0 then
+		strength = strength * (link.strengthIn or 0.5)
 	else
-		strength = strength * (entity.outStrength or 1)
+		strength = strength * (link.strengthOut or 1)
 	end
 	
-	local newAPos = a.pos + normal * entity.error * mulA * dt ^ 2 * strength
-	local newBPos = b.pos - normal * entity.error * mulB * dt ^ 2 * strength
+	local newAPos = a.pos + normal * link.error * mulA * dt ^ 2 * strength
+	local newBPos = b.pos - normal * link.error * mulB * dt ^ 2 * strength
 	
 	a.pos = newAPos
 	b.pos = newBPos

@@ -52,20 +52,27 @@ function system:process(entity: typedef.InputEntity, dt: number)
 		entity.target = target
 	end
 	
-	if not entity.link and entity.target and entity.input:down 'grab' then
-		entity.link = {
-			linkA = entity as typedef.ObjectEntity,
-			linkB = entity.target as typedef.ObjectEntity,
-			distance = 50,--(entity.pos - entity.target.pos).length,
-			inStrength = 0,
-			outStrength = 0.02
-		}
-		self.world:addEntity(entity.link as tiny.Entity)
-	end
-	
-	if entity.link and not entity.input:down 'grab' then
-		self.world:removeEntity(entity.link as tiny.Entity)
-		entity.link = nil
+	if entity.input:down 'grab' then
+		if not entity.link and entity.target then
+			local link <total>: typedef.comp.Link = {
+				-- FIXME: need a more robust way to convert entities here
+				a = entity as typedef.comp.Linked,
+				b = entity.target as typedef.comp.Linked,
+				distance = 50,--(entity.pos - entity.target.pos).length,
+				strengthIn = 0,
+				strengthOut = 0.02,
+				error = 0,
+			}
+			entity.link = link
+			
+			-- Refresh component filters
+			self.world:addEntity(entity as tiny.Entity)
+		end
+	else
+		if entity.link then
+			entity.link = nil
+			self.world:addEntity(entity as tiny.Entity)
+		end
 	end
 end
 

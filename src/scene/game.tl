@@ -3,7 +3,7 @@ local record Game
 	world: tiny.World
 	levelName: string
 	input: baton.Player
-	player: typedef.InputEntity
+	player: typedef.PlayerEntity
 	levelEnd: boolean
 	levelData: level.Data
 	flux: flux.Group
@@ -124,19 +124,8 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	self.world:addSystem(util.instance(require 'system.input'))
 	self.world:addSystem(util.instance(require 'system.verlet'))
 	self.world:addSystem(util.instance(require 'system.gravity'))
+	self.world:addSystem(util.instance(require 'system.link'))
 	self.world:addSystem(util.instance(require 'system.update_particles'))
-	
-	local linkDummy: tiny.System<any> = tiny.system()
-	local linkSystem = util.instance(require 'system.link')
-	function linkDummy:update(dt: number)
-		local iterations = 3
-		for _ = 1, iterations do
-			linkSystem:update(dt / iterations)
-		end
-	end
-	self.world:addSystem(util.instance(linkDummy))
-	linkSystem.active = false
-	self.world:addSystem(linkSystem)
 	
 	self.world:addSystem(util.instance(require 'system.level_end'))
 	
@@ -171,11 +160,13 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	end
 	
 	for _, link in pairs(levelData.links) do
-		local a, b = points[link.a] as typedef.ObjectEntity, points[link.b] as typedef.ObjectEntity
+		local a, b = points[link.a] as typedef.comp.Linked, points[link.b] as typedef.comp.Linked
 		local entity: typedef.LinkEntity = {
-			linkA = a,
-			linkB = b,
-			distance = (a.pos as vec2 - b.pos as vec2).length,
+			link = {
+				a = a,
+				b = b,
+				distance = (a.pos as vec2 - b.pos as vec2).length,
+			}
 		}
 		self.world:addEntity(entity as table)
 	end
@@ -184,13 +175,15 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	
 	do
 		local pos = vec2(levelData.player.x, levelData.player.y)
-		local entity = {
+		local entity <total>: typedef.PlayerEntity = {
 			pos = pos.copy,
 			lastPos = pos.copy,
 			aim = vec2(1, 0),
 			mass = config.player.body.mass,
 			heat = 0,
 			input = self.input,
+			opacity = 1,
+			scale = 1,
 		}
 		self.world:addEntity(entity as table)
 		self.camera = cam11(pos.x, pos.y, 1, 0, 0, 0, gw, gh)
@@ -250,19 +243,24 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 			color.withAlpha(color.exit, 0)
 		)
 		
-		local entity = {
+		local entity <total>: typedef.LevelEndEntity = {
 			pos = pos.copy,
-			endSignal = sig,
+			trigger = {
+				radius = config.exit.radius,
+				signal = sig,
+			},
 			particles = {ps3, ps2, ps1},
-			attraction = 1000,
-			attractionMinDist = 150,
+			attraction = {
+				force = 1000,
+				distMin = 150,
+			},
 		}
 		
 		sig:connect(function()
 			if not self.levelEnd then
 				self.levelEnd = true
 			
-				entity.attraction = entity.attraction * 3
+				entity.attraction.force = entity.attraction.force * 3
 				
 				-- Opacity tween
 				do

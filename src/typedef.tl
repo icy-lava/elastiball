@@ -1,126 +1,159 @@
-local record AttractorEntity
-	attraction: number
-	attractionMaxDist: number
-	attractionMinDist: number
-	pos: vec2
+local record comp
+	type Aim = vec2
+	type Attraction = record
+		distMax: number
+		distMin: number
+		force: number
+	end
+	type Heat = number
+	type Input = baton.Player
+	type LastPos = vec2
+	type Link = record
+		a: Linked
+		b: Linked
+		distance: number
+		error: number
+		strengthIn: number
+		strengthOut: number
+	end
+	type Linked = record
+		lastPos: vec2
+		mass: number
+		pinned: boolean
+		pos: vec2
+	end
+	type Mass = number
+	type Opacity = number
+	type Particles = {love.graphics.ParticleSystem}
+	type Pinned = boolean
+	type Pos = vec2
+	type Scale = number
+	type Target = record
+		pinned: boolean
+		pos: vec2
+	end
+	type Trigger = record
+		inverse: boolean
+		radius: number
+		signal: signal<string>
+	end
 end
 
-local record CompleteEntity
-	aim: vec2
-	attraction: number
-	attractionMaxDist: number
-	attractionMinDist: number
-	distance: number
-	endSignal: signal<string>
-	error: number
-	heat: number
-	inStrength: number
-	input: baton.Player
-	lastPos: vec2
-	link: LinkEntity
-	linkA: ObjectEntity
-	linkB: ObjectEntity
-	mass: number
-	opacity: number
-	outStrength: number
-	particles: {love.graphics.ParticleSystem}
-	pinned: boolean
-	pos: vec2
-	scale: number
-	target: TargetEntity
+local record AttractorEntity
+	attraction: comp.Attraction
+	pos: comp.Pos
 end
 
 local record DrawnPlayerEntity
-	aim: vec2
-	heat: number
-	lastPos: vec2
-	opacity: number
-	pos: vec2
-	scale: number
-	target: TargetEntity
+	aim: comp.Aim
+	heat: comp.Heat
+	lastPos: comp.LastPos
+	opacity: comp.Opacity
+	pos: comp.Pos
+	scale: comp.Scale
+	target: comp.Target
+end
+
+local record FullEntity
+	aim: comp.Aim
+	attraction: comp.Attraction
+	heat: comp.Heat
+	input: comp.Input
+	lastPos: comp.LastPos
+	link: comp.Link
+	linked: comp.Linked
+	mass: comp.Mass
+	opacity: comp.Opacity
+	particles: comp.Particles
+	pinned: comp.Pinned
+	pos: comp.Pos
+	scale: comp.Scale
+	target: comp.Target
+	trigger: comp.Trigger
 end
 
 local record GravityEntity
-	lastPos: vec2
-	pinned: boolean
-	pos: vec2
+	lastPos: comp.LastPos
+	pinned: comp.Pinned
+	pos: comp.Pos
 end
 
 local record InputEntity
-	aim: vec2
-	heat: number
-	input: baton.Player
-	lastPos: vec2
-	link: LinkEntity
-	mass: number
-	opacity: number
-	pos: vec2
-	scale: number
-	target: TargetEntity
+	aim: comp.Aim
+	heat: comp.Heat
+	input: comp.Input
+	lastPos: comp.LastPos
+	link: comp.Link
+	mass: comp.Mass
+	opacity: comp.Opacity
+	pos: comp.Pos
+	scale: comp.Scale
+	target: comp.Target
 end
 
 local record LevelEndEntity
-	endSignal: signal<string>
-	pos: vec2
+	attraction: comp.Attraction
+	particles: comp.Particles
+	pos: comp.Pos
+	trigger: comp.Trigger
 end
 
 local record LinkEntity
-	distance: number
-	error: number
-	inStrength: number
-	linkA: ObjectEntity
-	linkB: ObjectEntity
-	outStrength: number
+	link: comp.Link
 end
 
 local record ObjectEntity
-	lastPos: vec2
-	mass: number
-	pinned: boolean
-	pos: vec2
+	lastPos: comp.LastPos
+	mass: comp.Mass
+	pinned: comp.Pinned
+	pos: comp.Pos
 end
 
 local record ParticleSystemEntity
-	opacity: number
-	particles: {love.graphics.ParticleSystem}
-	pos: vec2
+	opacity: comp.Opacity
+	particles: comp.Particles
+	pos: comp.Pos
 end
 
 local record PlayerEntity
-	lastPos: vec2
-	opacity: number
-	pos: vec2
-	scale: number
+	aim: comp.Aim
+	heat: comp.Heat
+	input: comp.Input
+	lastPos: comp.LastPos
+	mass: comp.Mass
+	opacity: comp.Opacity
+	pos: comp.Pos
+	scale: comp.Scale
 end
 
 local record PointEntity
-	lastPos: vec2
-	pinned: boolean
-	pos: vec2
+	lastPos: comp.LastPos
+	pinned: comp.Pinned
+	pos: comp.Pos
 end
 
 local record TargetEntity
-	pinned: boolean
-	pos: vec2
+	pinned: comp.Pinned
+	pos: comp.Pos
 end
 
 local record VerletEntity
-	lastPos: vec2
-	pinned: boolean
-	pos: vec2
+	lastPos: comp.LastPos
+	pinned: comp.Pinned
+	pos: comp.Pos
 end
 
-local entityFilter: {CompleteEntity:tiny.EntityFilter} = {
+local entityFilter: {FullEntity:tiny.EntityFilter} = {
 	[AttractorEntity] = tiny.requireAll("pos", "attraction"),
-	[CompleteEntity] = tiny.requireAll("mass", "scale", "endSignal", "lastPos", "particles", "aim", "link", "distance", "heat", "linkB", "target", "attractionMaxDist", "pinned", "inStrength", "attractionMinDist", "pos", "error", "input", "attraction", "outStrength", "linkA", "opacity"),
 	[DrawnPlayerEntity] = tiny.requireAll("pos", "lastPos", "aim", "heat"),
+	[FullEntity] = tiny.requireAll("scale", "target", "heat", "pinned", "opacity", "pos", "particles", "link", "linked", "trigger", "aim", "attraction", "input", "mass", "lastPos"),
 	[GravityEntity] = tiny.requireAll("pos", "lastPos"),
 	[InputEntity] = tiny.requireAll("pos", "lastPos", "input", "aim", "heat"),
-	[LevelEndEntity] = tiny.requireAll("pos", "endSignal"),
-	[LinkEntity] = tiny.requireAll("linkA", "linkB", "distance"),
+	[LevelEndEntity] = tiny.requireAll("pos", "trigger", "particles", "attraction"),
+	[LinkEntity] = tiny.requireAll("link"),
 	[ObjectEntity] = tiny.requireAll("pos", "lastPos"),
 	[ParticleSystemEntity] = tiny.requireAll("particles"),
-	[PlayerEntity] = tiny.requireAll("pos", "lastPos"),
+	[PlayerEntity] = tiny.requireAll("pos", "lastPos", "aim", "mass", "heat", "input", "opacity", "scale"),
 	[PointEntity] = tiny.requireAll("pos", "lastPos", "pinned"),
 	[TargetEntity] = tiny.requireAll("pos"),
 	[VerletEntity] = tiny.requireAll("pos", "lastPos"),
@@ -128,8 +161,8 @@ local entityFilter: {CompleteEntity:tiny.EntityFilter} = {
 
 return {
 	AttractorEntity = AttractorEntity,
-	CompleteEntity = CompleteEntity,
 	DrawnPlayerEntity = DrawnPlayerEntity,
+	FullEntity = FullEntity,
 	GravityEntity = GravityEntity,
 	InputEntity = InputEntity,
 	LevelEndEntity = LevelEndEntity,
@@ -140,5 +173,6 @@ return {
 	PointEntity = PointEntity,
 	TargetEntity = TargetEntity,
 	VerletEntity = VerletEntity,
-	filter = entityFilter
+	filter = entityFilter,
+	comp = comp,
 }

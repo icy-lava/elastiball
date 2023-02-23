@@ -25,7 +25,11 @@ local components: RecordDef = {
 		strengthIn = 'number',
 		strengthOut = 'number',
 	},
-	endSignal_t = 'signal<string>',
+	trigger_t = {
+		radius = 'number',
+		inverse = 'boolean',
+		signal = 'signal<string>',
+	},
 	particles_t = '{love.graphics.ParticleSystem}',
 	attraction_t = {
 		force = 'number',
@@ -41,19 +45,22 @@ local compKeys: {string} = {}; for k in pairs(components) do table.insert(compKe
 local systems: {string:string} = {
 	full = table.concat(compKeys, ' '),
 	
+	-- Entity types
+	player = 'pos lastPos aim mass heat input opacity scale',
+	levelEnd = 'pos trigger particles attraction',
+	
 	object = 'pos lastPos mass? pinned?',
 	target = 'pos pinned?',
 	
+	-- Systems
 	drawnPlayer = 'pos lastPos aim heat opacity? scale? target?',
-	player = 'pos lastPos opacity? scale?',
 	point = 'pos lastPos pinned',
 	verlet = 'pos lastPos pinned?',
 	gravity = 'pos lastPos pinned?',
-	link = 'linkA linkB distance error? inStrength? outStrength?',
+	link = 'link',
 	input = 'pos lastPos input aim heat opacity? scale? mass? target? link?',
-	levelEnd = 'pos endSignal',
 	particleSystem = 'particles opacity? pos?',
-	attractor = 'pos attraction attractionMinDist? attractionMaxDist?',
+	attractor = 'pos attraction',
 }
 
 local function spairs<K, V>(t: {K:V}, comparator: function(a: K, b: K): boolean): function(): (K, V)

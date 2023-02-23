@@ -78,7 +78,7 @@ function util.findSystemInstance<T, U>(systems: {tiny.System<U>}, class: tiny.Sy
 end
 
 function util.findEntity<T>(entities: {tiny.Entity}, def: T): T
-	local filt = typedef.filter[def as typedef.CompleteEntity]
+	local filt = typedef.filter[def as typedef.FullEntity]
 	if not filt then
 		error('def is not an entity definition')
 	end
