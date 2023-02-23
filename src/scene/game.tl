@@ -28,11 +28,23 @@ function Game:update(dt: number)
 		local delta = p.pos - p.lastPos
 		local length = delta.length
 		local normal = delta / length
-		p.pos = p.pos - normal * dt * dt * length * 600
+		p.pos = p.pos - normal * dt * dt * length * 500
 	end
 	
-	local pos = self.player.pos as vec2
-	self.camera:setPos(pos.x, pos.y)
+	local pos = self.player.pos
+	local lastPos = self.player.lastPos
+	
+	if self.levelEnd then
+		local pos2 = self.levelData.levelEnd
+		pos = vec2(pos2.x, pos2.y)
+		lastPos = pos.copy
+	end
+	
+	local delta = (pos - lastPos) * dt
+	local camPos = vec2(self.camera:getPos())
+	local targetPos = pos + delta * vec2(40000 * 2, 40000)
+	camPos = util.damp(0.4, dt, camPos, targetPos)
+	self.camera:setPos(camPos.x, camPos.y)
 end
 
 function Game:draw()
@@ -189,26 +201,6 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 		local pos = vec2(levelData.levelEnd.x, levelData.levelEnd.y)
 		local sig: signal<string> = signal.new()
 		
-		sig:connect(function()
-			if not self.levelEnd then
-				self.levelEnd = true
-			
-				-- Opacity tween
-				self.player.opacity = self.player.opacity or 1
-				self.player.scale = self.player.scale or 1
-				self.flux:to(self.player, 1.5, {opacity = 0, scale = 0.5}):ease 'quadin'
-				
-				-- Fade tween
-				local fade = {value = 0}
-				self.flux:to(fade, 1.5, {value = 1})
-					:ease 'quartin'
-					:delay(0.5)
-					:onupdate(function()
-						self.fadeColor = color.withAlpha(color.black, fade.value)
-					end)
-			end
-		end)
-		
 		local ps1 = love.graphics.newParticleSystem(asset.alpha_image.circle)
 		ps1:setParticleLifetime(3, 4)
 		ps1:setEmissionRate(100)
@@ -265,8 +257,55 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 			attraction = 1000,
 			attractionMinDist = 150,
 		}
+		
+		sig:connect(function()
+			if not self.levelEnd then
+				self.levelEnd = true
+			
+				entity.attraction = entity.attraction * 3
+				
+				-- Opacity tween
+				do
+					self.player.opacity = self.player.opacity or 1
+					self.player.scale = self.player.scale or 1
+					self.flux:to(self.player, 1.75, {opacity = 0, scale = 0.25}):ease 'quadin'
+				end
+				
+				local cam = self.camera
+				do -- Camera zoom tween
+					local tween = {value = 0}
+					local zoom = cam:getZoom()
+					self.flux:to(tween, 1.75, {value = 1})
+						:ease 'quartin'
+						:delay(0.25)
+						:onupdate(function()
+							cam:setZoom(zoom * 2 ^ (tween.value * 4))
+						end)
+				end	
+				
+				do
+					local tween = {value = 0}
+					local rot = cam:getAngle()
+					self.flux:to(tween, 2, {value = 1})
+						:ease 'quartin'
+						:onupdate(function()
+							cam:setAngle(rot + tween.value * math.pi * 1)
+						end)
+				end
+				
+				do -- Fade tween
+					local fade = {value = 0}
+					self.flux:to(fade, 1.5, {value = 1})
+						:ease 'quartin'
+						:delay(0.5)
+						:onupdate(function()
+							self.fadeColor = color.withAlpha(color.black, fade.value)
+						end)
+				end
+			end
+		end)
+		
 		self.world:addEntity(entity as table)
-		self.camera = cam11(pos.x, pos.y, 1, 0, 0, 0, gw, gh)
 	end
 	
 	self.world:refresh()
