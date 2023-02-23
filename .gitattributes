@@ -1,4 +1,4 @@
-*.tl linguist-language=lua
+*.tl linguist-language=lua linguist-detectable
 /lib linguist-vendored
 src/typedef.tl linguist-generated
 /types linguist-documentation
