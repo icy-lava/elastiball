@@ -6,15 +6,31 @@ local record Game
 	player: typedef.InputEntity
 	levelEnd: boolean
 	levelData: level.Data
+	flux: flux.Group
+	fadeColor: color.RGBA
 	__index: Game
 end
 Game.__index = Game
 
 function Game:update(dt: number)
 	self.input:update()
+	self.flux:update(dt)
 	self.world:update(dt, function(_: tiny.World, system: tiny.System<any>): boolean
 		return not (system as table).draw
 	end)
+	
+	if self.levelEnd then
+		local p = self.player
+		-- Cancel out gravity
+		p.pos = p.pos - GRAVITY * dt * dt
+		
+		-- Apply velocity damping
+		local delta = p.pos - p.lastPos
+		local length = delta.length
+		local normal = delta / length
+		p.pos = p.pos - normal * dt * dt * length * 600
+	end
+	
 	local pos = self.player.pos as vec2
 	self.camera:setPos(pos.x, pos.y)
 end
@@ -22,13 +38,21 @@ end
 function Game:draw()
 	local gw, gh = love.graphics.getDimensions()
 	
+	self.camera:attach(true)
+	
 	love.graphics.clear(color.background)
 	
-	self.camera:attach(true)
 	self.world:update(0, function(_: tiny.World, system: tiny.System<any>): boolean
 		return not not (system as table).draw
 	end)
+	
 	self.camera:detach()
+	
+	if self.fadeColor and self.fadeColor[4] > 0 then
+		local vpx, vpy, vpw, vph = self.camera:getViewport()
+		love.graphics.setColor(self.fadeColor)
+		love.graphics.rectangle('fill', vpx, vpy, vpw, vph)
+	end
 	
 	do -- Heat bar
 		local barWidth = util.round(gw * 3 / 4)
@@ -79,6 +103,7 @@ end
 function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	local gw, gh = love.graphics.getDimensions() as (integer, integer)
 	
+	self.flux = flux.group()
 	self.world = tiny.world()
 	
 	self.world:addSystem(util.instance(require 'system.point'))
@@ -164,9 +189,24 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 		local pos = vec2(levelData.levelEnd.x, levelData.levelEnd.y)
 		local sig: signal<string> = signal.new()
 		
-		local this = self
 		sig:connect(function()
-			this.levelEnd = true
+			if not self.levelEnd then
+				self.levelEnd = true
+			
+				-- Opacity tween
+				self.player.opacity = self.player.opacity or 1
+				self.player.scale = self.player.scale or 1
+				self.flux:to(self.player, 1.5, {opacity = 0, scale = 0.5}):ease 'quadin'
+				
+				-- Fade tween
+				local fade = {value = 0}
+				self.flux:to(fade, 1.5, {value = 1})
+					:ease 'quartin'
+					:delay(0.5)
+					:onupdate(function()
+						self.fadeColor = color.withAlpha(color.black, fade.value)
+					end)
+			end
 		end)
 		
 		local ps1 = love.graphics.newParticleSystem(asset.alpha_image.circle)

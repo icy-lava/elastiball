@@ -1,4 +1,4 @@
-local components = {
+local components: {string:string} = {
 	pos = 'vec2',
 	lastPos = 'vec2',
 	aim = 'vec2',
@@ -19,27 +19,31 @@ local components = {
 	attraction = 'number',
 	attractionMinDist = 'number',
 	attractionMaxDist = 'number',
+	opacity = 'number',
+	scale = 'number',
 }
 
 local compKeys: {string} = {}; for k in pairs(components) do table.insert(compKeys, k) end
 
-local entities = {
+local entities: {string:string} = {
 	complete = table.concat(compKeys, ' '),
 	
 	object = 'pos lastPos mass? pinned?',
 	target = 'pos pinned?',
 	
-	drawnPlayer = 'pos lastPos aim heat target?',
-	player = 'pos lastPos',
+	drawnPlayer = 'pos lastPos aim heat opacity? scale? target?',
+	player = 'pos lastPos opacity? scale?',
 	point = 'pos lastPos pinned',
 	verlet = 'pos lastPos pinned?',
 	gravity = 'pos lastPos pinned?',
 	link = 'linkA linkB distance error? inStrength? outStrength?',
-	input = 'pos lastPos input aim heat mass? target? link?',
+	input = 'pos lastPos input aim heat opacity? scale? mass? target? link?',
 	levelEnd = 'pos endSignal',
-	particleSystem = 'particles pos?',
+	particleSystem = 'particles opacity? pos?',
 	attractor = 'pos attraction attractionMinDist? attractionMaxDist?',
 }
+
+-- local type RecordDef = {string:string | RecordDef}
 
 local fieldTemplate = "%s: %s"
 

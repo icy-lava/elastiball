@@ -21,10 +21,12 @@ local record CompleteEntity
 	linkA: ObjectEntity
 	linkB: ObjectEntity
 	mass: number
+	opacity: number
 	outStrength: number
 	particles: {love.graphics.ParticleSystem}
 	pinned: boolean
 	pos: vec2
+	scale: number
 	target: TargetEntity
 end
 
@@ -32,7 +34,9 @@ local record DrawnPlayerEntity
 	aim: vec2
 	heat: number
 	lastPos: vec2
+	opacity: number
 	pos: vec2
+	scale: number
 	target: TargetEntity
 end
 
@@ -49,7 +53,9 @@ local record InputEntity
 	lastPos: vec2
 	link: LinkEntity
 	mass: number
+	opacity: number
 	pos: vec2
+	scale: number
 	target: TargetEntity
 end
 
@@ -75,13 +81,16 @@ local record ObjectEntity
 end
 
 local record ParticleSystemEntity
+	opacity: number
 	particles: {love.graphics.ParticleSystem}
 	pos: vec2
 end
 
 local record PlayerEntity
 	lastPos: vec2
+	opacity: number
 	pos: vec2
+	scale: number
 end
 
 local record PointEntity
@@ -103,7 +112,7 @@ end
 
 local entityFilter: {CompleteEntity:tiny.EntityFilter} = {
 	[AttractorEntity] = tiny.requireAll("pos", "attraction"),
-	[CompleteEntity] = tiny.requireAll("mass", "endSignal", "lastPos", "particles", "aim", "link", "distance", "heat", "linkB", "attractionMaxDist", "pinned", "inStrength", "attractionMinDist", "pos", "error", "input", "attraction", "outStrength", "linkA", "target"),
+	[CompleteEntity] = tiny.requireAll("mass", "scale", "endSignal", "lastPos", "particles", "aim", "link", "distance", "heat", "linkB", "target", "attractionMaxDist", "pinned", "inStrength", "attractionMinDist", "pos", "error", "input", "attraction", "outStrength", "linkA", "opacity"),
 	[DrawnPlayerEntity] = tiny.requireAll("pos", "lastPos", "aim", "heat"),
 	[GravityEntity] = tiny.requireAll("pos", "lastPos"),
 	[InputEntity] = tiny.requireAll("pos", "lastPos", "input", "aim", "heat"),

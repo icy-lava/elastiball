@@ -16,7 +16,8 @@ local color = {
 	background: RGB = hex '#6d273d',
 	point: RGB = hex '#408d9d',
 	link: RGB = hex '#465b63',
-	white: RGB = {1, 1, 1}
+	white: RGB = {1, 1, 1},
+	black: RGB = {0, 0, 0},
 }
 
 function color.withAlpha(col: {number}, alpha: number): {number, number, number, number}
