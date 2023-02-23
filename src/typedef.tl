@@ -102,13 +102,6 @@ local record LinkEntity
 	link: comp.Link
 end
 
-local record ObjectEntity
-	lastPos: comp.LastPos
-	mass: comp.Mass
-	pinned: comp.Pinned
-	pos: comp.Pos
-end
-
 local record ParticleSystemEntity
 	opacity: comp.Opacity
 	particles: comp.Particles
@@ -132,11 +125,6 @@ local record PointEntity
 	pos: comp.Pos
 end
 
-local record TargetEntity
-	pinned: comp.Pinned
-	pos: comp.Pos
-end
-
 local record VerletEntity
 	lastPos: comp.LastPos
 	pinned: comp.Pinned
@@ -146,16 +134,14 @@ end
 local entityFilter: {FullEntity:tiny.EntityFilter} = {
 	[AttractorEntity] = tiny.requireAll("pos", "attraction"),
 	[DrawnPlayerEntity] = tiny.requireAll("pos", "lastPos", "aim", "heat"),
-	[FullEntity] = tiny.requireAll("scale", "target", "heat", "pinned", "opacity", "pos", "particles", "link", "linked", "trigger", "aim", "attraction", "input", "mass", "lastPos"),
+	[FullEntity] = tiny.requireAll("pos", "target", "trigger", "pinned", "opacity", "scale", "particles", "link", "linked", "heat", "aim", "attraction", "input", "mass", "lastPos"),
 	[GravityEntity] = tiny.requireAll("pos", "lastPos"),
 	[InputEntity] = tiny.requireAll("pos", "lastPos", "input", "aim", "heat"),
 	[LevelEndEntity] = tiny.requireAll("pos", "trigger", "particles", "attraction"),
 	[LinkEntity] = tiny.requireAll("link"),
-	[ObjectEntity] = tiny.requireAll("pos", "lastPos"),
 	[ParticleSystemEntity] = tiny.requireAll("particles"),
-	[PlayerEntity] = tiny.requireAll("pos", "lastPos", "aim", "mass", "heat", "input", "opacity", "scale"),
+	[PlayerEntity] = tiny.requireAll("pos", "lastPos", "aim", "heat", "input"),
 	[PointEntity] = tiny.requireAll("pos", "lastPos", "pinned"),
-	[TargetEntity] = tiny.requireAll("pos"),
 	[VerletEntity] = tiny.requireAll("pos", "lastPos"),
 }
 
@@ -167,11 +153,9 @@ return {
 	InputEntity = InputEntity,
 	LevelEndEntity = LevelEndEntity,
 	LinkEntity = LinkEntity,
-	ObjectEntity = ObjectEntity,
 	ParticleSystemEntity = ParticleSystemEntity,
 	PlayerEntity = PlayerEntity,
 	PointEntity = PointEntity,
-	TargetEntity = TargetEntity,
 	VerletEntity = VerletEntity,
 	filter = entityFilter,
 	comp = comp,

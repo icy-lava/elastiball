@@ -1,13 +1,17 @@
 local record Game
 	camera: cam11.Camera
-	world: tiny.World
-	levelName: string
-	input: baton.Player
-	player: typedef.PlayerEntity
-	levelEnd: boolean
-	levelData: level.Data
 	flux: flux.Group
+	world: tiny.World
+	input: baton.Player
+	
+	player: typedef.PlayerEntity
+	
+	levelData: level.Data
+	levelName: string
+	
+	levelEnd: boolean
 	fadeColor: color.RGBA
+	
 	__index: Game
 end
 Game.__index = Game
@@ -150,7 +154,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	
 	for uid, point in pairs(levelData.points) do
 		local pos = vec2(point.pos.x, point.pos.y)
-		local entity: typedef.PointEntity = {
+		local entity <total>: typedef.PointEntity = {
 			pos = pos.copy,
 			lastPos = pos.copy,
 			pinned = point.pinned,
@@ -161,12 +165,16 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	
 	for _, link in pairs(levelData.links) do
 		local a, b = points[link.a] as typedef.comp.Linked, points[link.b] as typedef.comp.Linked
-		local entity: typedef.LinkEntity = {
-			link = {
-				a = a,
-				b = b,
-				distance = (a.pos as vec2 - b.pos as vec2).length,
-			}
+		local linc <total>: typedef.comp.Link = {
+			a = a,
+			b = b,
+			distance = (a.pos as vec2 - b.pos as vec2).length,
+			error = 0,
+			strengthIn = nil,
+			strengthOut = nil,
+		}
+		local entity <total>: typedef.LinkEntity = {
+			link = linc,
 		}
 		self.world:addEntity(entity as table)
 	end
@@ -253,6 +261,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 			attraction = {
 				force = 1000,
 				distMin = 150,
+				distMax = 2000,
 			},
 		}
 		

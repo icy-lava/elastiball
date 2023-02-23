@@ -79,7 +79,7 @@ end
 global baton = require 'baton'
 global config = require 'config'
 global vec2 = require 'brinevector'
-global GRAVITY = vec2(0, 300)
+global GRAVITY = vec2(0, 400)
 
 global json = require 'json'
 global flux = require 'flux'

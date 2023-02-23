@@ -3,7 +3,7 @@ local pointSystem = require 'system.point'
 
 function system:process(entity: typedef.InputEntity, dt: number)
 	entity.input:update()
-	entity.pos = entity.pos + vec2(entity.input:get 'move') * dt ^ 2 * 100
+	entity.pos = entity.pos + vec2(entity.input:get 'move') * dt ^ 2 * vec2(100, 300)
 	
 	if util.mouseRel.length >= 5 then
 		entity.input._activeDevice = 'kbm'

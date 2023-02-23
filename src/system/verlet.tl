@@ -11,7 +11,7 @@ function system:process(entity: typedef.VerletEntity, _: number)
 			local attr = attractor.attraction
 			local delta = (attractor.pos - entity.pos)
 			local dist2 = delta.length2
-			if not attr.distMax or dist2 < attr.distMin ^ 2 then
+			if not attr.distMax or (dist2 < attr.distMax ^ 2) then
 				-- FIXME: this doesn't take delta time into account
 				local force = 1 / (1 + math.max((attr.distMin or 100) ^ 2, dist2)) * attr.force
 				entity.pos = entity.pos + delta.normalized * force

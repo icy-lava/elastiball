@@ -2,11 +2,14 @@ local type RecordDef = {string:string | RecordDef}
 local components: RecordDef = {
 	pos_t = 'vec2',
 	lastPos_t = 'vec2',
+	mass_t = 'number',
+	heat_t = 'number',
+	opacity_t = 'number',
+	scale_t = 'number',
+	pinned_t = 'boolean',
 	aim_t = 'vec2',
 	input_t = 'baton.Player',
-	heat_t = 'number',
-	mass_t = 'number',
-	pinned_t = 'boolean',
+	particles_t = '{love.graphics.ParticleSystem}',
 	target_t = {
 		pos = 'vec2',
 		pinned = 'boolean'
@@ -30,14 +33,11 @@ local components: RecordDef = {
 		inverse = 'boolean',
 		signal = 'signal<string>',
 	},
-	particles_t = '{love.graphics.ParticleSystem}',
 	attraction_t = {
 		force = 'number',
 		distMin = 'number',
 		distMax = 'number',
 	},
-	opacity_t = 'number',
-	scale_t = 'number',
 }
 
 local compKeys: {string} = {}; for k in pairs(components) do table.insert(compKeys, (k:gsub('_t$', ''))) end
@@ -46,15 +46,12 @@ local systems: {string:string} = {
 	full = table.concat(compKeys, ' '),
 	
 	-- Entity types
-	player = 'pos lastPos aim mass heat input opacity scale',
+	player = 'pos lastPos aim heat input mass? opacity? scale?',
 	levelEnd = 'pos trigger particles attraction',
-	
-	object = 'pos lastPos mass? pinned?',
-	target = 'pos pinned?',
+	point = 'pos lastPos pinned',
 	
 	-- Systems
 	drawnPlayer = 'pos lastPos aim heat opacity? scale? target?',
-	point = 'pos lastPos pinned',
 	verlet = 'pos lastPos pinned?',
 	gravity = 'pos lastPos pinned?',
 	link = 'link',

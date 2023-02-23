@@ -90,8 +90,8 @@ function util.findEntity<T>(entities: {tiny.Entity}, def: T): T
 	return nil
 end
 
-function util.findPlayer(entities: {tiny.Entity}): typedef.InputEntity
-	return util.findEntity(entities, typedef.InputEntity)
+function util.findPlayer(entities: {tiny.Entity}): typedef.PlayerEntity
+	return util.findEntity(entities, typedef.PlayerEntity)
 end
 
 function util.getCorners(a: vec2, b: vec2, pad: number): vec2, vec2

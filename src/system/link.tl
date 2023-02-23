@@ -29,7 +29,7 @@ function system:process(entity: typedef.LinkEntity, dt: number)
 		mulA, mulB = 1, 0
 	end
 	
-	local strength = 5000.0
+	local strength = 3000.0
 	if link.error < 0 then
 		strength = strength * (link.strengthIn or 0.5)
 	else
