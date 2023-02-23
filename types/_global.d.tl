@@ -5,4 +5,5 @@ global cargo = require 'cargo'
 global record asset
 	level: {string:level.Data}
 	font: {string:cargo.FontFunc}
+	image: {string:love.graphics.Image}
 end

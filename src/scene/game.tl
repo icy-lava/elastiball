@@ -1,15 +1,11 @@
 local record Game
 	camera: cam11.Camera
-	lastCamPos: vec2
 	world: tiny.World
 	levelName: string
 	input: baton.Player
 	player: typedef.InputEntity
 	levelEnd: boolean
 	levelData: level.Data
-	fadeCanvasA: love.graphics.Canvas
-	fadeCanvasB: love.graphics.Canvas
-	canvasPad: integer
 	__index: Game
 end
 Game.__index = Game
@@ -26,44 +22,10 @@ end
 function Game:draw()
 	local gw, gh = love.graphics.getDimensions()
 	
-	-- FIXME: This doesn't take into account rotation and zoom changes
-	local newCamPos = vec2(self.camera:getPos())
-	
-	local c1 = vec2(self.camera:toScreen(self.lastCamPos:split()))
-	local c2 = vec2(self.camera:toScreen(newCamPos:split()))
-	local camDelta = c2 - c1
-	
-	self.lastCamPos = newCamPos
-	
-	self.fadeCanvasA, self.fadeCanvasB = self.fadeCanvasB, self.fadeCanvasA
-	love.graphics.setCanvas(self.fadeCanvasA)
-	love.graphics.setColor(1, 1, 1, 1)
-	love.graphics.draw(self.fadeCanvasB as love.graphics.Drawable, -camDelta.x, -camDelta.y)
-	
-	love.graphics.setColor(color.withAlpha(color.background, 0.1))
-	love.graphics.rectangle('fill', 0, 0, gw, gh)
-	
-	-- self.world:update(0, function(_: tiny.World, system: tiny.System<any>): boolean
-	-- 	return not not (system as table).draw
-	-- end)
-	
-	self.camera:attach(true)
-	
-	self.world:update(0, function(_: tiny.World, system: tiny.System<any>): boolean
-		if system.filter ~= require 'system.draw_player'.filter then return false end
-		return not not (system as table).draw
-	end)
-	
-	self.camera:detach()
-	
-	love.graphics.setCanvas()
-	
-	love.graphics.setColor(1, 1, 1, 1)
-	love.graphics.draw(self.fadeCanvasA as love.graphics.Drawable, -self.canvasPad, -self.canvasPad)
+	love.graphics.clear(color.background)
 	
 	self.camera:attach(true)
 	self.world:update(0, function(_: tiny.World, system: tiny.System<any>): boolean
-		if system.filter == require 'system.draw_player'.filter then return false end
 		return not not (system as table).draw
 	end)
 	self.camera:detach()
@@ -104,15 +66,6 @@ function Game:resize(width: integer, height: integer)
 	
 	self.camera:setZoom(math.min(fitWidth / WIDTH, fitHeight / HEIGHT))
 	self.camera:setViewport(x, y, fitWidth, fitHeight)
-	local options = {
-		msaa = 8,
-		format = 'rgba16f',
-	}
-	if self.fadeCanvasA then ((self.fadeCanvasA as table).release as function)(self.fadeCanvasA) end
-	if self.fadeCanvasB then ((self.fadeCanvasA as table).release as function)(self.fadeCanvasB) end
-	self.fadeCanvasA = love.graphics.newCanvas(width + self.canvasPad * 2, height + self.canvasPad * 2, options)
-	self.fadeCanvasB = love.graphics.newCanvas(width + self.canvasPad * 2, height + self.canvasPad * 2, options)
-	collectgarbage()
 end
 
 function Game:mousemoved(_: integer, _: integer, dx: integer, dy: integer)
@@ -130,10 +83,12 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	
 	self.world:addSystem(util.instance(require 'system.player'))
 	self.world:addSystem(util.instance(require 'system.point'))
+	self.world:addSystem(util.instance(require 'system.attractor'))
 	
 	self.world:addSystem(util.instance(require 'system.input'))
-	self.world:addSystem(util.instance(require 'system.velocity'))
+	self.world:addSystem(util.instance(require 'system.verlet'))
 	self.world:addSystem(util.instance(require 'system.gravity'))
+	self.world:addSystem(util.instance(require 'system.update_particles'))
 	
 	local linkDummy: tiny.System<any> = tiny.system()
 	local linkSystem = util.instance(require 'system.link')
@@ -149,10 +104,11 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	
 	self.world:addSystem(util.instance(require 'system.level_end'))
 	
+	self.world:addSystem(util.instance(require 'system.draw_level_end'))
+	self.world:addSystem(util.instance(require 'system.draw_particles'))
 	self.world:addSystem(util.instance(require 'system.draw_link'))
 	self.world:addSystem(util.instance(require 'system.draw_point'))
 	self.world:addSystem(util.instance(require 'system.draw_player'))
-	self.world:addSystem(util.instance(require 'system.draw_level_end'))
 	
 	local levelData: level.Data
 	if levelInfo is string then
@@ -192,13 +148,13 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	
 	do
 		local pos = vec2(levelData.player.x, levelData.player.y)
-		local entity: typedef.InputEntity = {
+		local entity = {
 			pos = pos.copy,
 			lastPos = pos.copy,
 			aim = vec2(1, 0),
 			mass = config.player.body.mass,
 			heat = 0,
-			input = self.input
+			input = self.input,
 		}
 		self.world:addEntity(entity as table)
 		self.camera = cam11(pos.x, pos.y, 1, 0, 0, 0, gw, gh)
@@ -214,9 +170,61 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 			this.levelEnd = true
 		end)
 		
-		local entity: typedef.LevelEndEntity = {
+		local ps1 = love.graphics.newParticleSystem(asset.image.circle)
+		ps1:setParticleLifetime(3, 4)
+		ps1:setEmissionRate(100)
+		ps1:setSpeed(-150, -100)
+		ps1:setRadialAcceleration(-100, -50)
+		ps1:setTangentialAcceleration(100, 7000)
+		ps1:setLinearDamping(0.1)
+		ps1:setEmissionArea('borderellipse', config.exit.radius * 1, config.exit.radius * 1, 0, true)
+		ps1:setInsertMode('random')
+		ps1:setSizes(config.particle.scaleToUnit * 10, config.particle.scaleToUnit * 20, config.particle.scaleToUnit * 50)
+		ps1:setColors(
+			color.withAlpha(color.exit, 0),
+			color.withAlpha(color.exit, 0.3),
+			color.withAlpha(color.exit, 0.9),
+			color.withAlpha(color.exit, 0)
+		)
+		
+		local ps2 = love.graphics.newParticleSystem(asset.image.circle)
+		ps2:setParticleLifetime(3, 4)
+		ps2:setEmissionRate(50)
+		ps2:setSpeed(-150, -100)
+		ps2:setRadialAcceleration(5, 10)
+		ps2:setTangentialAcceleration(20, 50)
+		ps2:setEmissionArea('borderellipse', config.exit.radius * 2, config.exit.radius * 2, 0, true)
+		ps2:setInsertMode('random')
+		ps2:setSizes(config.particle.scaleToUnit * 10, config.particle.scaleToUnit * 30, config.particle.scaleToUnit * 100)
+		ps2:setColors(
+			color.withAlpha(color.exit, 0),
+			color.withAlpha(color.exit, 0.3),
+			color.withAlpha(color.exit, 0.9),
+			color.withAlpha(color.exit, 0)
+		)
+		
+		local ps3 = love.graphics.newParticleSystem(asset.image.circle)
+		ps3:setParticleLifetime(3, 4)
+		ps3:setEmissionRate(100)
+		ps3:setSpeed(-30, -10)
+		ps3:setRadialAcceleration(-100, -50)
+		ps3:setLinearDamping(0.5)
+		ps3:setTangentialAcceleration(50, 100)
+		ps3:setEmissionArea('ellipse', config.exit.radius * 1.1, config.exit.radius * 1.1, 0, true)
+		ps3:setInsertMode('random')
+		ps3:setSizes(config.particle.scaleToUnit * 50, config.particle.scaleToUnit * 100, config.particle.scaleToUnit * 50)
+		ps3:setColors(
+			color.withAlpha(color.exit, 0),
+			color.withAlpha(color.exit, 0.8),
+			color.withAlpha(color.exit, 0)
+		)
+		
+		local entity = {
 			pos = pos.copy,
 			endSignal = sig,
+			particles = {ps3, ps2, ps1},
+			attraction = 1000,
+			-- attractionMinDist = 100,
 		}
 		self.world:addEntity(entity as table)
 		self.camera = cam11(pos.x, pos.y, 1, 0, 0, 0, gw, gh)
@@ -224,8 +232,6 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	
 	self.world:refresh()
 	
-	self.canvasPad = 0
-	self.lastCamPos = vec2(self.camera:getPos())
 	self:resize(gw, gh)
 	
 	love.mouse.setRelativeMode(true)
@@ -242,7 +248,7 @@ end
 function Game:keypressed(key: string)
 	if cli.dev then
 		if key == 'r' and love.keyboard.isDown('lctrl', 'rctrl') then
-			if key == 'escape' and self.levelName == 'live' then
+			if self.levelName == 'live' then
 				scene:enter(Game.new(), self.levelData)
 			else
 				scene:enter(Game.new(), self.levelName)

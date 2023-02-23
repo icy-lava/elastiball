@@ -1,4 +1,7 @@
 return {
+	particle = {
+		scaleToUnit = 1 / 512
+	},
 	player = {
 		heat = {
 			up = 5,

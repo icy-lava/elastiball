@@ -1,5 +1,15 @@
+local record AttractorEntity
+	attraction: number
+	attractionMaxDist: number
+	attractionMinDist: number
+	pos: vec2
+end
+
 local record CompleteEntity
 	aim: vec2
+	attraction: number
+	attractionMaxDist: number
+	attractionMinDist: number
 	distance: number
 	endSignal: signal<string>
 	error: number
@@ -12,6 +22,7 @@ local record CompleteEntity
 	linkB: ObjectEntity
 	mass: number
 	outStrength: number
+	particles: {love.graphics.ParticleSystem}
 	pinned: boolean
 	pos: vec2
 	target: TargetEntity
@@ -63,6 +74,11 @@ local record ObjectEntity
 	pos: vec2
 end
 
+local record ParticleSystemEntity
+	particles: {love.graphics.ParticleSystem}
+	pos: vec2
+end
+
 local record PlayerEntity
 	lastPos: vec2
 	pos: vec2
@@ -79,27 +95,30 @@ local record TargetEntity
 	pos: vec2
 end
 
-local record VelocityEntity
+local record VerletEntity
 	lastPos: vec2
 	pinned: boolean
 	pos: vec2
 end
 
 local entityFilter = {
-	[CompleteEntity] = tiny.requireAll("mass", "linkB", "endSignal", "lastPos", "link", "target", "pinned", "inStrength", "aim", "pos", "linkA", "outStrength", "error", "distance", "input", "heat"),
+	[AttractorEntity] = tiny.requireAll("pos", "attraction"),
+	[CompleteEntity] = tiny.requireAll("mass", "endSignal", "lastPos", "particles", "aim", "link", "distance", "heat", "linkB", "attractionMaxDist", "pinned", "inStrength", "attractionMinDist", "pos", "error", "input", "attraction", "outStrength", "linkA", "target"),
 	[DrawnPlayerEntity] = tiny.requireAll("pos", "lastPos", "aim", "heat"),
 	[GravityEntity] = tiny.requireAll("pos", "lastPos"),
 	[InputEntity] = tiny.requireAll("pos", "lastPos", "input", "aim", "heat"),
 	[LevelEndEntity] = tiny.requireAll("pos", "endSignal"),
 	[LinkEntity] = tiny.requireAll("linkA", "linkB", "distance"),
 	[ObjectEntity] = tiny.requireAll("pos", "lastPos"),
+	[ParticleSystemEntity] = tiny.requireAll("particles"),
 	[PlayerEntity] = tiny.requireAll("pos", "lastPos"),
 	[PointEntity] = tiny.requireAll("pos", "lastPos", "pinned"),
 	[TargetEntity] = tiny.requireAll("pos"),
-	[VelocityEntity] = tiny.requireAll("pos", "lastPos"),
+	[VerletEntity] = tiny.requireAll("pos", "lastPos"),
 }
 
 return {
+	AttractorEntity = AttractorEntity,
 	CompleteEntity = CompleteEntity,
 	DrawnPlayerEntity = DrawnPlayerEntity,
 	GravityEntity = GravityEntity,
@@ -107,9 +126,10 @@ return {
 	LevelEndEntity = LevelEndEntity,
 	LinkEntity = LinkEntity,
 	ObjectEntity = ObjectEntity,
+	ParticleSystemEntity = ParticleSystemEntity,
 	PlayerEntity = PlayerEntity,
 	PointEntity = PointEntity,
 	TargetEntity = TargetEntity,
-	VelocityEntity = VelocityEntity,
+	VerletEntity = VerletEntity,
 	filter = entityFilter
 }

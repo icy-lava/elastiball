@@ -42,7 +42,8 @@ function love.load()
 				json = level.load
 			}
 		},
-		font = cargo.init 'asset/font'
+		font = cargo.init 'asset/font',
+		image = cargo.init 'asset/image',
 	}
 	cam11 = require 'cam11'
 	scene:hook {

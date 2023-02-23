@@ -15,6 +15,10 @@ local components = {
 	target = 'TargetEntity',
 	link = 'LinkEntity',
 	endSignal = 'signal<string>',
+	particles = '{love.graphics.ParticleSystem}',
+	attraction = 'number',
+	attractionMinDist = 'number',
+	attractionMaxDist = 'number',
 }
 
 local compKeys: {string} = {}; for k in pairs(components) do table.insert(compKeys, k) end
@@ -28,11 +32,13 @@ local entities = {
 	drawnPlayer = 'pos lastPos aim heat target?',
 	player = 'pos lastPos',
 	point = 'pos lastPos pinned',
-	velocity = 'pos lastPos pinned?',
+	verlet = 'pos lastPos pinned?',
 	gravity = 'pos lastPos pinned?',
 	link = 'linkA linkB distance error? inStrength? outStrength?',
 	input = 'pos lastPos input aim heat mass? target? link?',
 	levelEnd = 'pos endSignal',
+	particleSystem = 'particles pos?',
+	attractor = 'pos attraction attractionMinDist? attractionMaxDist?',
 }
 
 local fieldTemplate = "%s: %s"

@@ -29,23 +29,19 @@ function system:process(entity: typedef.InputEntity, dt: number)
 			local naim = entity.aim.normalized
 			local err = 1 / 0
 			
-			-- FIXME: there's not a straightforward way to access points from in here, so for now this hack will do
-			for _, sys in ipairs(self.world.systems as {tiny.System<any>}) do
-				if sys.filter == pointSystem.filter then
-					for _, e in ipairs(sys.entities) do
-						local t = e as entity.target
-						if not t.pinned then
-							local delta = t.pos - entity.pos
-							local dot = delta.normalized:dot(naim)
-							if dot > 0.1 then
-								local pass = delta.length / dot
-								if pass < 300 then
-									local newErr = delta.length / dot ^ 5
-									if newErr < err then
-										target = t
-										err = newErr
-									end
-								end
+			local entities = util.findSystemInstance(self.world.systems, pointSystem).entities
+			for _, e in ipairs(entities) do
+				local t = e as entity.target
+				if not t.pinned then
+					local delta = t.pos - entity.pos
+					local dot = delta.normalized:dot(naim)
+					if dot > 0.1 then
+						local pass = delta.length / dot
+						if pass < 300 then
+							local newErr = delta.length / dot ^ 5
+							if newErr < err then
+								target = t
+								err = newErr
 							end
 						end
 					end

@@ -68,6 +68,15 @@ function util.drawSystem<T>(entity: T): tiny.System<T>
 	return system
 end
 
+function util.findSystemInstance<T, U>(systems: {tiny.System<U>}, class: tiny.System<T>): tiny.System<T>
+	for _, syst in ipairs(systems as {tiny.System<any>}) do
+		if syst.filter == class.filter then
+			return syst as tiny.System<T>
+		end
+	end
+	return nil
+end
+
 function util.getCorners(a: vec2, b: vec2, pad: number): vec2, vec2
 	pad = pad or 0
 	local topLeft = vec2(math.min(a.x, b.x) - pad, math.min(a.y, b.y) - pad)

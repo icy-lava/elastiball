@@ -8,7 +8,7 @@ end
 
 function system:process(entity: typedef.LevelEndEntity, _: number)
 	love.graphics.setColor(color.exit)
-	love.graphics.circle('line', entity.pos.x, entity.pos.y, config.exit.radius)
+	love.graphics.circle('fill', entity.pos.x, entity.pos.y, config.exit.radius * 0.5)
 end
 
 function system:postProcess(_: number)
