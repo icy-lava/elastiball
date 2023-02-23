@@ -81,7 +81,6 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	
 	self.world = tiny.world()
 	
-	self.world:addSystem(util.instance(require 'system.player'))
 	self.world:addSystem(util.instance(require 'system.point'))
 	self.world:addSystem(util.instance(require 'system.attractor'))
 	
@@ -170,7 +169,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 			this.levelEnd = true
 		end)
 		
-		local ps1 = love.graphics.newParticleSystem(asset.image.circle)
+		local ps1 = love.graphics.newParticleSystem(asset.alpha_image.circle)
 		ps1:setParticleLifetime(3, 4)
 		ps1:setEmissionRate(100)
 		ps1:setSpeed(-150, -100)
@@ -187,7 +186,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 			color.withAlpha(color.exit, 0)
 		)
 		
-		local ps2 = love.graphics.newParticleSystem(asset.image.circle)
+		local ps2 = love.graphics.newParticleSystem(asset.alpha_image.circle)
 		ps2:setParticleLifetime(3, 4)
 		ps2:setEmissionRate(50)
 		ps2:setSpeed(-150, -100)
@@ -203,7 +202,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 			color.withAlpha(color.exit, 0)
 		)
 		
-		local ps3 = love.graphics.newParticleSystem(asset.image.circle)
+		local ps3 = love.graphics.newParticleSystem(asset.alpha_image.circle)
 		ps3:setParticleLifetime(3, 4)
 		ps3:setEmissionRate(100)
 		ps3:setSpeed(-30, -10)
@@ -224,7 +223,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 			endSignal = sig,
 			particles = {ps3, ps2, ps1},
 			attraction = 1000,
-			-- attractionMinDist = 100,
+			attractionMinDist = 150,
 		}
 		self.world:addEntity(entity as table)
 		self.camera = cam11(pos.x, pos.y, 1, 0, 0, 0, gw, gh)

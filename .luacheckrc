@@ -2,6 +2,10 @@ std = 'luajit+love'
 ignore = {"611"}
 globals = {
 	'util',
+	'cargo',
+	'asset',
+	'love.arg',
+	'level',
 	'vec2',
 	'log',
 	'json',

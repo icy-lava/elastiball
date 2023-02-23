@@ -1,1 +1,0 @@
-return util.system(typedef.InputEntity)

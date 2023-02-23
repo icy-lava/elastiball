@@ -43,7 +43,18 @@ function love.load()
 			}
 		},
 		font = cargo.init 'asset/font',
-		image = cargo.init 'asset/image',
+		alpha_image = cargo.init {
+			dir = 'asset/alpha_image',
+			loaders = {
+				png = function(path)
+					local id = love.image.newImageData(path)
+					id:mapPixel(function(_, _, r)
+						return 1, 1, 1, r
+					end)
+					return assert(love.graphics.newImage(id), {mipmaps = true})
+				end
+			}
+		},
 	}
 	cam11 = require 'cam11'
 	scene:hook {

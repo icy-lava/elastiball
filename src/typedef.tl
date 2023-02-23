@@ -101,7 +101,7 @@ local record VerletEntity
 	pos: vec2
 end
 
-local entityFilter = {
+local entityFilter: {CompleteEntity:tiny.EntityFilter} = {
 	[AttractorEntity] = tiny.requireAll("pos", "attraction"),
 	[CompleteEntity] = tiny.requireAll("mass", "endSignal", "lastPos", "particles", "aim", "link", "distance", "heat", "linkB", "attractionMaxDist", "pinned", "inStrength", "attractionMinDist", "pos", "error", "input", "attraction", "outStrength", "linkA", "target"),
 	[DrawnPlayerEntity] = tiny.requireAll("pos", "lastPos", "aim", "heat"),

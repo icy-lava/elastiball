@@ -102,7 +102,7 @@ if command == 'gen' then
 		table.insert(filterMap, string.format('[%s] = %s,', ename, filters[ename]))
 	end
 	table.sort(filterMap)
-	output = output .. '\n\n' .. string.format('local entityFilter = {\n\t%s\n}', table.concat(filterMap, '\n\t'))
+	output = output .. '\n\n' .. string.format('local entityFilter: {CompleteEntity:tiny.EntityFilter} = {\n\t%s\n}', table.concat(filterMap, '\n\t'))
 	
 	local outFields: {string} = {'filter = entityFilter'}
 	for _, ename in ipairs(enames) do

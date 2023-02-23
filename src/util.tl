@@ -77,6 +77,23 @@ function util.findSystemInstance<T, U>(systems: {tiny.System<U>}, class: tiny.Sy
 	return nil
 end
 
+function util.findEntity<T>(entities: {tiny.Entity}, def: T): T
+	local filt = typedef.filter[def as typedef.CompleteEntity]
+	if not filt then
+		error('def is not an entity definition')
+	end
+	for _, entity in ipairs(entities) do
+		if filt(nil, entity) then
+			return entity as T
+		end
+	end
+	return nil
+end
+
+function util.findPlayer(entities: {tiny.Entity}): typedef.InputEntity
+	return util.findEntity(entities, typedef.InputEntity)
+end
+
 function util.getCorners(a: vec2, b: vec2, pad: number): vec2, vec2
 	pad = pad or 0
 	local topLeft = vec2(math.min(a.x, b.x) - pad, math.min(a.y, b.y) - pad)
