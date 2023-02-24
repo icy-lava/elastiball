@@ -2,6 +2,10 @@ return {
 	particle = {
 		scaleToUnit = 1 / 512
 	},
+	reticle = {
+		radius = 12,
+		distance = 100
+	},
 	player = {
 		heat = {
 			up = 5,
@@ -11,10 +15,6 @@ return {
 			radius = 24,
 			mass = 5,
 		},
-		reticle = {
-			radius = 12,
-			distance = 100
-		}
 	},
 	point = {
 		radius = 20,
@@ -46,6 +46,24 @@ return {
 		},
 		deadzone = 0.2,
 		joystick = love.joystick.getJoysticks()[1],
+	},
+	inputDummy = baton.new {
+		controls = {
+			moveLeft  = {},
+			moveRight = {},
+			moveUp    = {},
+			moveDown  = {},
+			aimLeft   = {},
+			aimRight  = {},
+			aimUp     = {},
+			aimDown   = {},
+			grab      = {},
+			boost     = {},
+		},
+		pairs = {
+			move = {'moveLeft', 'moveRight', 'moveUp', 'moveDown'},
+			aim =  {'aimLeft', 'aimRight', 'aimUp', 'aimDown'},
+		},
 	},
 	exit = {
 		radius = 300

@@ -31,6 +31,12 @@ function Game:resetLevel()
 	end
 end
 
+function Game:immobilizePlayer()
+	self.player.input = config.inputDummy
+	self.player.aim = nil
+	self.world:addEntity(self.player as tiny.Entity)
+end
+
 function Game:onDeath()
 	local tween = {value = 0}
 	self.flux:to(tween, 1, {value = 1})
@@ -44,10 +50,55 @@ function Game:onDeath()
 		:oncomplete(function()
 			self:resetLevel()
 		end)
+	
+	self:immobilizePlayer()
+end
+
+function Game:onLevelEnd()
+	do -- Opacity tween
+		self.player.opacity = self.player.opacity or 1
+		self.player.scale = self.player.scale or 1
+		self.flux:to(self.player, 1.75, {opacity = 0, scale = 0.25}):ease 'quadin'
+	end
+	
+	local cam = self.camera
+	do -- Camera zoom tween
+		local tween = {value = 0}
+		local zoom = cam:getZoom()
+		self.flux:to(tween, 1.75, {value = 1})
+			:ease 'quartin'
+			:delay(0.25)
+			:onupdate(function()
+				cam:setZoom(zoom * 2 ^ (tween.value * 4))
+			end)
+	end	
+	
+	do -- Camera rotation tween
+		local tween = {value = 0}
+		local rot = cam:getAngle()
+		self.flux:to(tween, 2, {value = 1})
+			:ease 'quartin'
+			:onupdate(function()
+				cam:setAngle(rot + tween.value * math.pi * 1)
+			end)
+	end
+	
+	do -- Fade tween
+		local fade = {value = 0}
+		self.flux:to(fade, 1.5, {value = 1})
+			:ease 'quartin'
+			:delay(0.5)
+			:onupdate(function()
+				self.fadeColor = color.withAlpha(color.black, fade.value)
+			end)
+	end
+	
+	self:immobilizePlayer()
 end
 
 function Game:update(dt: number)
 	self.input:update()
+	config.inputDummy:update()
 	self.flux:update(dt)
 	
 	if self.safety ~= 'dying' then
@@ -181,6 +232,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 		self.world:addSystem(util.instance(require 'system.draw_link'))
 		self.world:addSystem(util.instance(require 'system.draw_point'))
 		self.world:addSystem(util.instance(require 'system.draw_player'))
+		self.world:addSystem(util.instance(require 'system.draw_reticle'))
 	end
 	
 	local levelData: level.Data
@@ -347,51 +399,22 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 		sig:connect(function()
 			if not self.levelEnd then
 				self.levelEnd = true
-			
 				entity.attraction.force = entity.attraction.force * 3
-				
-				-- Opacity tween
-				do
-					self.player.opacity = self.player.opacity or 1
-					self.player.scale = self.player.scale or 1
-					self.flux:to(self.player, 1.75, {opacity = 0, scale = 0.25}):ease 'quadin'
-				end
-				
-				local cam = self.camera
-				do -- Camera zoom tween
-					local tween = {value = 0}
-					local zoom = cam:getZoom()
-					self.flux:to(tween, 1.75, {value = 1})
-						:ease 'quartin'
-						:delay(0.25)
-						:onupdate(function()
-							cam:setZoom(zoom * 2 ^ (tween.value * 4))
-						end)
-				end	
-				
-				do -- Camera rotation tween
-					local tween = {value = 0}
-					local rot = cam:getAngle()
-					self.flux:to(tween, 2, {value = 1})
-						:ease 'quartin'
-						:onupdate(function()
-							cam:setAngle(rot + tween.value * math.pi * 1)
-						end)
-				end
-				
-				do -- Fade tween
-					local fade = {value = 0}
-					self.flux:to(fade, 1.5, {value = 1})
-						:ease 'quartin'
-						:delay(0.5)
-						:onupdate(function()
-							self.fadeColor = color.withAlpha(color.black, fade.value)
-						end)
-				end
+				self:onLevelEnd()
 			end
 		end)
 		
 		self.world:addEntity(entity as table)
+	end
+	
+	do -- Fade in tween
+		local tween = {value = 1}
+		self.fadeColor = color.withAlpha(color.black, 1)
+		self.flux:to(tween, 0.5, {value = 0})
+			:ease 'quadinout'
+			:onupdate(function()
+				self.fadeColor = color.withAlpha(color.black, tween.value)
+			end)
 	end
 	
 	self.world:refresh()

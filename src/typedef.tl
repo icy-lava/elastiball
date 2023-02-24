@@ -39,6 +39,12 @@ local record comp
 	end
 end
 
+local record AimEntity
+	aim: comp.Aim
+	opacity: comp.Opacity
+	pos: comp.Pos
+end
+
 local record AttractorEntity
 	attraction: comp.Attraction
 	pos: comp.Pos
@@ -139,11 +145,12 @@ local record VerletEntity
 end
 
 local entityFilter: {FullEntity:tiny.EntityFilter} = {
+	[AimEntity] = tiny.requireAll("aim", "pos"),
 	[AttractorEntity] = tiny.requireAll("attraction", "pos"),
 	[DrawnPlayerEntity] = tiny.requireAll("aim", "heat", "lastPos", "pos"),
 	[FullEntity] = tiny.requireAll("aim", "attraction", "heat", "input", "lastPos", "link", "linked", "mass", "opacity", "particles", "pinned", "pos", "scale", "target", "trigger"),
 	[GravityEntity] = tiny.requireAll("lastPos", "pos"),
-	[InputEntity] = tiny.requireAll("aim", "heat", "input", "lastPos", "pos"),
+	[InputEntity] = tiny.requireAll("heat", "input", "lastPos", "pos"),
 	[LevelEndEntity] = tiny.requireAll("attraction", "particles", "pos", "trigger"),
 	[LinkEntity] = tiny.requireAll("link"),
 	[ParticleSystemEntity] = tiny.requireAll("particles"),
@@ -155,6 +162,7 @@ local entityFilter: {FullEntity:tiny.EntityFilter} = {
 }
 
 return {
+	AimEntity = AimEntity,
 	AttractorEntity = AttractorEntity,
 	DrawnPlayerEntity = DrawnPlayerEntity,
 	FullEntity = FullEntity,
