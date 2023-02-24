@@ -12,6 +12,7 @@ local components: RecordDef = {
 	particles_t = '{love.graphics.ParticleSystem}',
 	drawables_t = '{love.graphics.Drawable | function(entity: FullEntity)}',
 	layer_t = 'integer',
+	solids_t = '{shapes.Shape}',
 	target_t = {
 		pos = 'vec2',
 		pinned = 'boolean'
@@ -56,6 +57,7 @@ local systems: {string:string} = {
 	levelEnd       = 'pos drawables? layer? trigger particles attraction',
 	
 	-- Systems
+	solids         = 'solids',
 	aim            = 'pos aim opacity?',
 	drawable       = 'drawables layer? pos? scale? opacity?',
 	drawnPlayer    = 'pos lastPos aim heat opacity? scale? target?',

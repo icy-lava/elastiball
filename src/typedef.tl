@@ -44,6 +44,7 @@ local record FullEntity
 	pinned: comp.Pinned
 	pos: comp.Pos
 	scale: comp.Scale
+	solids: comp.Solids
 	target: comp.Target
 	trigger: comp.Trigger
 end
@@ -113,6 +114,10 @@ local record SafezoneEntity
 	trigger: comp.Trigger
 end
 
+local record SolidsEntity
+	solids: comp.Solids
+end
+
 local record TriggerEntity
 	pos: comp.Pos
 	trigger: comp.Trigger
@@ -157,6 +162,7 @@ local record comp
 	type Pinned = boolean
 	type Pos = vec2
 	type Scale = number
+	type Solids = {shapes.Shape}
 	type Target = record
 		pinned: boolean
 		pos: vec2
@@ -173,7 +179,7 @@ local entityFilter: {FullEntity:tiny.EntityFilter} = {
 	[AttractorEntity] = tiny.requireAll("attraction", "pos"),
 	[DrawableEntity] = tiny.requireAll("drawables"),
 	[DrawnPlayerEntity] = tiny.requireAll("aim", "heat", "lastPos", "pos"),
-	[FullEntity] = tiny.requireAll("aim", "attraction", "drawables", "heat", "input", "lastPos", "layer", "link", "linkRef", "linked", "mass", "opacity", "particles", "pinned", "pos", "scale", "target", "trigger"),
+	[FullEntity] = tiny.requireAll("aim", "attraction", "drawables", "heat", "input", "lastPos", "layer", "link", "linkRef", "linked", "mass", "opacity", "particles", "pinned", "pos", "scale", "solids", "target", "trigger"),
 	[GravityEntity] = tiny.requireAll("lastPos", "pos"),
 	[InputEntity] = tiny.requireAll("heat", "input", "lastPos", "pos"),
 	[LevelEndEntity] = tiny.requireAll("attraction", "particles", "pos", "trigger"),
@@ -182,6 +188,7 @@ local entityFilter: {FullEntity:tiny.EntityFilter} = {
 	[PlayerEntity] = tiny.requireAll("aim", "heat", "input", "lastPos", "pos"),
 	[PointEntity] = tiny.requireAll("lastPos", "pinned", "pos"),
 	[SafezoneEntity] = tiny.requireAll("pos", "trigger"),
+	[SolidsEntity] = tiny.requireAll("solids"),
 	[TriggerEntity] = tiny.requireAll("pos", "trigger"),
 	[VerletEntity] = tiny.requireAll("lastPos", "pos"),
 }
@@ -200,6 +207,7 @@ return {
 	PlayerEntity = PlayerEntity,
 	PointEntity = PointEntity,
 	SafezoneEntity = SafezoneEntity,
+	SolidsEntity = SolidsEntity,
 	TriggerEntity = TriggerEntity,
 	VerletEntity = VerletEntity,
 	filter = entityFilter,

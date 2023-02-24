@@ -14,6 +14,11 @@ function util.round(num: number): integer
 	return math.floor(num + 0.5)
 end
 
+-- https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/reflect.xhtml
+function util.reflect(vec: vec2, normal: vec2): vec2
+	return vec - (2 * (vec * normal)) * normal
+end
+
 function util.crect(mode: love.graphics.DrawMode, x: number, y: number, width: number, height: number, round: number)
 	local x1, y1 = x - width / 2, y - height / 2
 	local x2, y2 = x1 + width, y1 + height

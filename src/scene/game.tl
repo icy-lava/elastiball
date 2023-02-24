@@ -208,8 +208,10 @@ function Game:draw()
 		util.crect('fill', barCenter.x, barCenter.y, (barWidth - pad * 2 - 6) * heat + 6, 6, 3)
 	end
 	
-	love.graphics.setColor(1, 1, 1, 1)
-	love.graphics.print(tostring(love.timer.getFPS()))
+	if cli.dev then
+		love.graphics.setColor(1, 1, 1, 1)
+		love.graphics.print(tostring(love.timer.getFPS()))
+	end
 end
 
 function Game:resize(width: integer, height: integer)
@@ -263,6 +265,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 		self.world:addSystem(util.instance(require 'system.trigger'))
 		
 		self.world:addSystem(util.instance(require 'system.draw_particles'))
+		self.world:addSystem(util.instance(require 'system.draw_solids'))
 		self.world:addSystem(util.instance(require 'system.drawable'))
 	end
 	
@@ -337,6 +340,25 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 			}
 			self.world:addEntity(entity as table)
 		end
+	end
+	
+	do -- Initialize polygons
+		-- for _, poly in pairs(levelData.safezones) do
+		-- 	local entity <total>: typedef.SafezoneEntity = {
+		-- 		pos = safezone.pos.copy,
+		-- 		trigger = {
+		-- 			radius = safezone.radius,
+		-- 			signal = sig,
+		-- 		},
+		-- 		drawables = nil,
+		-- 		layer = nil,
+		-- 	}
+		-- 	self.world:addEntity(entity as table)
+		-- end
+		local entity <total>: typedef.SolidsEntity = {
+			solids = {shapes.newPolygonShape(100, 100, 200, 100, 200, 200, 100, 200)}
+		}
+		self.world:addEntity(entity as table)
 	end
 	
 	do -- Intialize player

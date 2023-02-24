@@ -6,6 +6,7 @@ globals = {
 	'asset',
 	'love.arg',
 	'level',
+	'shapes',
 	'vec2',
 	'log',
 	'json',

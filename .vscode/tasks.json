@@ -53,5 +53,10 @@
 			"command": "make",
 			"args": ["clean"]
 		},
+		{
+			"label": "make attributes",
+			"command": "make",
+			"args": ["attributes"]
+		},
 	]
 }

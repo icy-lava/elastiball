@@ -16,6 +16,7 @@ local color = {
 	background: RGB = hex '#6d273d',
 	point: RGB = hex '#408d9d',
 	link: RGB = hex '#465b63',
+	solid: RGB = {vivid.LCHtoRGB(10, 10, 10)},
 	safe: RGB = {vivid.LCHtoRGB(20, 30, 240)},
 	unsafe: RGB = {vivid.LCHtoRGB(30, 80, 5)},
 	white: RGB = {1, 1, 1},
