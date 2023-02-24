@@ -30,7 +30,7 @@ ALL_FILES:=$(COMPILED_FILES) build/raw/asset
 ARTIFACT_LOVE:=build/game.love
 ARTIFACT_WEB:=build/game-web
 
-.PHONY: all run editor serve codegen compile assets clean love web
+.PHONY: all run editor serve codegen compile assets clean love web attributes
 
 all: love web
 
@@ -79,6 +79,9 @@ src/typedef.tl: typedef.tl
 	tl run typedef.lua gen > $@
 	busybox rm typedef.lua
 	tl check -q $@
+
+attributes:
+	git ls-files | git check-attr -a --stdin
 
 $(GENERATED_LUA): $(SOURCE_TEAL) tlconfig.lua
 	busybox mkdir -p build/raw
