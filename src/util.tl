@@ -126,4 +126,26 @@ function util.instance<T>(t: T): T
 	return setmetatable({} as T, {__index = t})
 end
 
+function util.imerge<T>(a: {T}, b: {T}): {T}
+	local result: {T} = {}
+	for i = 1, #a do
+		result[i] = a[i]
+	end
+	for i = 1, #b do
+		table.insert(result, b[i])
+	end
+	return result
+end
+
+function util.merge<K, V>(a: {K:V}, b: {K:V}): {K:V}
+	local result: {K:V} = {}
+	for k, v in pairs(a) do
+		result[k] = v
+	end
+	for k, v in pairs(b) do
+		result[k] = v
+	end
+	return result
+end
+
 return util

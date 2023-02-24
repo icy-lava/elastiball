@@ -40,8 +40,8 @@ function Game:update(dt: number)
 	
 	if self.levelEnd then
 		local pos2 = self.levelData.levelEnd
-		pos = vec2(pos2.x, pos2.y)
-		lastPos = pos.copy
+		pos = pos2.copy
+		lastPos = pos2.copy
 	end
 	
 	local delta = (pos - lastPos) * dt
@@ -153,10 +153,9 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	local points: {level.Data.UID:{string:any}} = {}
 	
 	for uid, point in pairs(levelData.points) do
-		local pos = vec2(point.pos.x, point.pos.y)
 		local entity <total>: typedef.PointEntity = {
-			pos = pos.copy,
-			lastPos = pos.copy,
+			pos = point.pos.copy,
+			lastPos = point.pos.copy,
 			pinned = point.pinned,
 		}
 		self.world:addEntity(entity as table)
@@ -168,7 +167,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 		local linc <total>: typedef.comp.Link = {
 			a = a,
 			b = b,
-			distance = (a.pos as vec2 - b.pos as vec2).length,
+			distance = (a.pos - b.pos).length,
 			error = 0,
 			strengthIn = nil,
 			strengthOut = nil,
@@ -182,7 +181,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	self.input = config.input
 	
 	do
-		local pos = vec2(levelData.player.x, levelData.player.y)
+		local pos = levelData.player
 		local entity <total>: typedef.PlayerEntity = {
 			pos = pos.copy,
 			lastPos = pos.copy,
@@ -199,7 +198,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	end
 	
 	do
-		local pos = vec2(levelData.levelEnd.x, levelData.levelEnd.y)
+		local pos = levelData.levelEnd
 		local sig: signal<string> = signal.new()
 		
 		local ps1 = love.graphics.newParticleSystem(asset.alpha_image.circle)

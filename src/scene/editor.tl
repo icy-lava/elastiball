@@ -23,10 +23,15 @@ local record Editor
 	end
 	link: Link
 	
+	record SafeDrag
+		startPos: vec2
+	end
+	safeDrag: SafeDrag
+	
 	selected: {Data.UID:boolean}
 	
 	enum Mode
-		'select' 'move' 'point' 'pin' 'link' 'player' 'end'
+		'select' 'move' 'point' 'pin' 'link' 'player' 'end' 'safezone'
 	end
 	mode: Mode
 	
@@ -66,22 +71,10 @@ function EditorModal.new(): EditorModal
 	return setmetatable({}, EditorModal)
 end
 
-local modes: {Editor.Mode} = {'select', 'move', 'point', 'pin', 'link', 'player', 'end'}
+local modes: {Editor.Mode} = {'select', 'move', 'point', 'pin', 'link', 'player', 'end', 'safezone'}
 local modeIndices: {Editor.Mode:integer} = {}
 for i, mode in ipairs(modes) do
 	modeIndices[mode] = i
-end
-
-local function vec2pos(v: vec2): level.Data.Position
-	return {x = v.x, y = v.y}
-end
-
-local function pos2vec(p: level.Data.Position): vec2
-	return vec2(p.x, p.y)
-end
-
-local function pos2(x: number, y: number): level.Data.Position
-	return {x = x or 0, y = y or 0}
 end
 
 function Editor:getSelectionCorners(): vec2, vec2
@@ -123,13 +116,16 @@ function Editor:selectAll()
 	for uid in pairs(self.data.points) do
 		self.selected[uid] = true
 	end
+	for uid in pairs(self.data.safezones) do
+		self.selected[uid] = true
+	end
 end
 
 function Editor:getClosestPoint(wx: number, wy: number): level.Data.Point, number
 	local closest: level.Data.Point
 	local distance2 = 1 / 0
 	for _, point in pairs(self.data.points) do
-		local newDistance2 = (pos2vec(point.pos) - vec2(wx, wy)).length2
+		local newDistance2 = (point.pos - vec2(wx, wy)).length2
 		if newDistance2 < distance2 then
 			closest = point
 			distance2 = newDistance2
@@ -144,6 +140,26 @@ function Editor:getHoveredPoint(): level.Data.Point
 		return point
 	end
 	return nil
+end
+
+function Editor:isSelected(uid: level.Data.UID): boolean
+	return self.selected[uid]
+end
+
+function Editor:isHovered(uid: level.Data.UID): boolean
+	local hpoint = self:getHoveredPoint()
+	return hpoint and hpoint.uid == uid
+end
+
+function Editor:properColor(uid: level.Data.UID, col: {number}): {number}
+	return color.contextual(col, self:isHovered(uid), self:isSelected(uid))
+end
+
+function Editor:moveUID(uid: level.Data.UID, move: vec2, relative: boolean): boolean
+	local point = self.data.points[uid]
+	if point then
+		-- point.pos = (relative and point.pos or vec2()) + move
+	end
 end
 
 function Editor:newUID(): string
@@ -187,21 +203,43 @@ function Editor:doOpen(filename: string)
 	end
 end
 
+function Editor:addSafezone(safezone: level.Data.Safezone)
+	safezone.uid = safezone.uid or self:newUID()
+	self.data.safezones[safezone.uid] = safezone
+end
+
 function Editor:enter()
 	self.camera = cam11(0, 0, 1, 0, 0, 0)
 	self.mode = modes[1]
 	self.font = love.graphics.newFont(16)
 	self.bigFont = asset.font['Baloo2-Medium'](48)
 	self.font:setLineHeight(1.25)
-	self.data = {
-		points = {},
-		links = {},
-		player = pos2(0, 0),
-		lastUID = 0,
-		levelEnd = pos2(100, 0)
+	
+	local data <total>: level.Data = {
+		points    = {},
+		links     = {},
+		safezones = {},
+		player    = vec2(0, 0),
+		lastUID   = 0,
+		levelEnd  = vec2(100, 0),
+		
+		-- Yikes
+		UID      = nil,
+		Link     = nil,
+		Point    = nil,
+		Safezone = nil,
 	}
+	self.data = data
+	
 	self.selected = {}
 	self.gridStep = vec2(15, 15)
+	
+	local defaultSafezone <total>: level.Data.Safezone = {
+		uid = nil,
+		radius = 500,
+		pos = (data.player + data.levelEnd) / 2,
+	}
+	self:addSafezone(defaultSafezone)
 end
 
 function Editor:wheelmoved(_: number, dy: number)
@@ -243,7 +281,7 @@ function Editor:mousepressed(x: integer, y: integer, button: integer)
 			local uid = self:newUID()
 			self.data.points[uid] = {
 				uid = uid,
-				pos = vec2pos(wpos),
+				pos = wpos.copy,
 				pinned = false,
 			}
 			self:deselectAll()
@@ -270,17 +308,24 @@ function Editor:mousepressed(x: integer, y: integer, button: integer)
 			return
 		end
 		
+		if self.mode == 'safezone' then
+			self.safeDrag = {
+				startPos = wpos.copy
+			}
+		end
+		
 		if self.mode == 'player' or self.mode == 'end' then
 			self:deselectAll()
 		end
 	end
 end
 
-function Editor:mousereleased(_: integer, _: integer, button: integer)
+function Editor:mousereleased(mx: integer, my: integer, button: integer)
 	if button == 3 then
 		self.drag = nil
 	end
 	
+	local wpos = vec2(self.camera:toWorld(mx, my))
 	if button == 1 then
 		local topLeft, bottomRight = self:getSelectionCorners()
 		if topLeft then
@@ -320,6 +365,17 @@ function Editor:mousereleased(_: integer, _: integer, button: integer)
 			end
 		end
 		
+		if self.safeDrag then
+			local radius = (wpos - self.safeDrag.startPos).length
+			local safezone <total>: level.Data.Safezone = {
+				uid = nil,
+				pos = self.safeDrag.startPos.copy,
+				radius = radius,
+			}
+			self:addSafezone(safezone)
+		end
+		
+		self.safeDrag = nil
 		self.link = nil
 		self.selection = nil
 		self.move = nil
@@ -327,32 +383,32 @@ function Editor:mousereleased(_: integer, _: integer, button: integer)
 end
 
 function Editor:update(_: number)
+	local wpos = vec2(self.camera:toWorld(love.mouse.getPosition()))
 	if self.drag then
 		local start = self.drag.startPos.copy
-		local current = vec2(self.camera:toWorld(love.mouse.getPosition()))
-		local delta = start - current
-		self.camera:setPos(self.camera:getX() + delta.x, self.camera:getY() + delta.y)
+		local delta = start - wpos
+		local camPos = vec2(self.camera:getPos())
+		self.camera:setPos((camPos + delta):split())
 	end
 	
 	if self.move then
-		local wpos = vec2(self.camera:toWorld(love.mouse.getPosition()))
 		local delta = wpos - self.move.lastPos
 		self.move.lastPos = wpos.copy
 		for uid in pairs(self.selected) do
 			local point = self.data.points[uid]
-			point.pos = vec2pos(pos2vec(point.pos) + delta)
+			point.pos = point.pos + delta
 		end
 	end
 	
 	if self.mode == 'player' then
 		if love.mouse.isDown(1) then
-			self.data.player = pos2(self.camera:toWorld(love.mouse.getPosition()))
+			self.data.player = wpos.copy
 		end
 	end
 	
 	if self.mode == 'end' then
 		if love.mouse.isDown(1) then
-			self.data.levelEnd = pos2(self.camera:toWorld(love.mouse.getPosition()))
+			self.data.levelEnd = wpos.copy
 		end
 	end
 end
@@ -368,12 +424,13 @@ function Editor:draw()
 	
 	love.graphics.clear(color.background)
 	
+	local wpos = vec2(self.camera:toWorld(love.mouse.getPosition()))
 	do -- Draw links
 		love.graphics.setLineWidth(config.link.lineWidth)
 		love.graphics.setColor(color.link)
 		for _, link in pairs(self.data.links) do
-			local a = pos2vec(self.data.points[link.a].pos)
-			local b = pos2vec(self.data.points[link.b].pos)
+			local a = self.data.points[link.a].pos.copy
+			local b = self.data.points[link.b].pos.copy
 			local delta = (b - a).normalized
 			a = a + delta * config.point.radius
 			b = b - delta * config.point.radius
@@ -383,30 +440,23 @@ function Editor:draw()
 		-- Draw current link
 		if self.link then
 			love.graphics.setColor(color.labLerp(0.5, color.link, color.white))
-			local a = pos2vec(self.data.points[self.link.startUID].pos)
-			local b = vec2(self.camera:toWorld(love.mouse.getPosition()))
+			local a = self.data.points[self.link.startUID].pos.copy
+			local b = wpos.copy
 			local delta = (b - a).normalized
 			a = a + delta * config.point.radius
 			-- b = b - delta * config.point.radius
 			local hpoint = self:getHoveredPoint()
 			if hpoint and hpoint.uid ~= self.link.startUID then
-				b = pos2vec(hpoint.pos)
+				b = hpoint.pos.copy
 			end
 			love.graphics.line(a.x, a.y, b.x, b.y)
 		end
 	end
 	
 	do -- Draw points
-		local hpoint = self:getHoveredPoint()
 		love.graphics.setLineWidth(config.point.lineWidth)
 		for uid, point in pairs(self.data.points) do
-			if hpoint and hpoint.uid == uid then
-				love.graphics.setColor(color.labLerp(0.5, color.point, {vivid.LCHtoRGB(95, 30, 240)}))
-			elseif self.selected[uid] then
-				love.graphics.setColor(color.labLerp(0.5, color.point, {vivid.LCHtoRGB(70, 90, 240)}))
-			else
-				love.graphics.setColor(color.point)
-			end
+			love.graphics.setColor(self:properColor(uid, color.point))
 			
 			love.graphics.circle('line', point.pos.x, point.pos.y, config.point.radius)
 			if point.pinned then
@@ -432,7 +482,37 @@ function Editor:draw()
 		love.graphics.printf({{1, 1, 1, 1}, 'E'}, self.bigFont, pos.x - 16, math.floor(pos.y - self.bigFont:getHeight() / 2), 32, 'center')
 	end
 	
+	do -- Draw safezone marker and stencil
+		local safezones = self.data.safezones
+		if self.safeDrag then
+			local pos = self.safeDrag.startPos
+			local uid = '0'
+			local drag <total>: level.Data.Safezone = {
+				uid = uid,
+				pos = pos.copy,
+				radius = (wpos - pos).length,
+			}
+			safezones = util.merge(safezones, {[uid] = drag})
+		end
+		for uid, safezone in pairs(safezones) do
+			local pos = safezone.pos
+			love.graphics.setColor(self:properColor(uid, color.safe))
+			love.graphics.printf({{1, 1, 1, 1}, 'S'}, self.bigFont, pos.x - 16, math.floor(pos.y - self.bigFont:getHeight() / 2), 32, 'center')
+		end
+		love.graphics.stencil(function()
+			for _, safezone in pairs(safezones) do
+				love.graphics.circle('fill', safezone.pos.x, safezone.pos.y, safezone.radius)
+			end
+		end)
+	end
+	
 	self.camera:detach()
+	
+	love.graphics.setStencilTest('notequal', 1)
+	love.graphics.setColor(color.withAlpha(color.unsafe, 0.75))
+	love.graphics.rectangle('fill', 0, 0, love.graphics.getDimensions())
+	love.graphics.setStencilTest()
+	
 	love.graphics.pop()
 	
 	-- UI
