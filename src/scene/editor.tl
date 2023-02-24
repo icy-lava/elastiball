@@ -96,6 +96,8 @@ function Editor:deleteUID(uid: level.Data.UID)
 		end
 	elseif self.data.links[uid] then
 		self.data.links[uid] = nil
+	elseif self.data.safezones[uid] then
+		self.data.safezones[uid] = nil
 	else
 		log.warn('tried to delete a non-existant uid: ' .. tostring(uid))
 	end
@@ -146,6 +148,13 @@ function Editor:isSelected(uid: level.Data.UID): boolean
 	return self.selected[uid]
 end
 
+function Editor:isVecInSelection(wpos: vec2): boolean
+	local topLeft, bottomRight = self:getSelectionCorners()
+	if not topLeft then return false end
+	local spos = vec2(self.camera:toScreen(wpos:split()))
+	return spos.x >= topLeft.x and spos.y >= topLeft.y and spos.x < bottomRight.x and spos.y < bottomRight.y
+end
+
 function Editor:isHovered(uid: level.Data.UID): boolean
 	local hpoint = self:getHoveredPoint()
 	return hpoint and hpoint.uid == uid
@@ -158,8 +167,17 @@ end
 function Editor:moveUID(uid: level.Data.UID, move: vec2, relative: boolean): boolean
 	local point = self.data.points[uid]
 	if point then
-		-- point.pos = (relative and point.pos or vec2()) + move
+		point.pos = (relative and point.pos or vec2()) + move
+		return true
 	end
+	
+	local safezone = self.data.safezones[uid]
+	if safezone then
+		safezone.pos = (relative and safezone.pos or vec2()) + move
+		return true
+	end
+	
+	return false
 end
 
 function Editor:newUID(): string
@@ -327,17 +345,17 @@ function Editor:mousereleased(mx: integer, my: integer, button: integer)
 	
 	local wpos = vec2(self.camera:toWorld(mx, my))
 	if button == 1 then
-		local topLeft, bottomRight = self:getSelectionCorners()
-		if topLeft then
+		if self:getSelectionCorners() then
 			if not love.keyboard.isDown('lshift', 'rshift') then
 				self.selected = {}
 			end
 			for uid, point in pairs(self.data.points) do
-				local spos = vec2(self.camera:toScreen(point.pos.x, point.pos.y))
-				if
-					spos.x >= topLeft.x and spos.y >= topLeft.y and
-					spos.x < bottomRight.x and spos.y < bottomRight.y
-				then
+				if self:isVecInSelection(point.pos) then
+					self.selected[uid] = true
+				end
+			end
+			for uid, safezone in pairs(self.data.safezones) do
+				if self:isVecInSelection(safezone.pos) then
 					self.selected[uid] = true
 				end
 			end
@@ -395,8 +413,7 @@ function Editor:update(_: number)
 		local delta = wpos - self.move.lastPos
 		self.move.lastPos = wpos.copy
 		for uid in pairs(self.selected) do
-			local point = self.data.points[uid]
-			point.pos = point.pos + delta
+			self:moveUID(uid, delta, true)
 		end
 	end
 	
