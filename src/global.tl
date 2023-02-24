@@ -87,6 +87,7 @@ global roomy = require 'roomy'
 global scene = roomy.new()
 global tiny = require 'tiny'
 global signal = require 'signal'
+global shapes = require 'hc.shapes'
 global typedef = require 'typedef'
 global vivid = require 'vivid'
 global util = require 'util'
