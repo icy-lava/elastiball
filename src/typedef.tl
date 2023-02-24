@@ -122,6 +122,16 @@ local record PointEntity
 	pos: comp.Pos
 end
 
+local record SafezoneEntity
+	pos: comp.Pos
+	trigger: comp.Trigger
+end
+
+local record TriggerEntity
+	pos: comp.Pos
+	trigger: comp.Trigger
+end
+
 local record VerletEntity
 	lastPos: comp.LastPos
 	pinned: comp.Pinned
@@ -139,6 +149,8 @@ local entityFilter: {FullEntity:tiny.EntityFilter} = {
 	[ParticleSystemEntity] = tiny.requireAll("particles"),
 	[PlayerEntity] = tiny.requireAll("aim", "heat", "input", "lastPos", "pos"),
 	[PointEntity] = tiny.requireAll("lastPos", "pinned", "pos"),
+	[SafezoneEntity] = tiny.requireAll("pos", "trigger"),
+	[TriggerEntity] = tiny.requireAll("pos", "trigger"),
 	[VerletEntity] = tiny.requireAll("lastPos", "pos"),
 }
 
@@ -153,6 +165,8 @@ return {
 	ParticleSystemEntity = ParticleSystemEntity,
 	PlayerEntity = PlayerEntity,
 	PointEntity = PointEntity,
+	SafezoneEntity = SafezoneEntity,
+	TriggerEntity = TriggerEntity,
 	VerletEntity = VerletEntity,
 	filter = entityFilter,
 	comp = comp,

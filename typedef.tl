@@ -46,18 +46,20 @@ local systems: {string:string} = {
 	full = table.concat(compKeys, ' '),
 	
 	-- Entity types
-	player = 'pos lastPos aim heat input mass? opacity? scale?',
-	levelEnd = 'pos trigger particles attraction',
-	point = 'pos lastPos pinned',
+	player         = 'pos lastPos aim heat input mass? opacity? scale?',
+	levelEnd       = 'pos trigger particles attraction',
+	point          = 'pos lastPos pinned',
+	safezone       = 'pos trigger',
 	
 	-- Systems
-	drawnPlayer = 'pos lastPos aim heat opacity? scale? target?',
-	verlet = 'pos lastPos pinned?',
-	gravity = 'pos lastPos pinned?',
-	link = 'link',
-	input = 'pos lastPos input aim heat target? link?',
+	drawnPlayer    = 'pos lastPos aim heat opacity? scale? target?',
+	verlet         = 'pos lastPos pinned?',
+	gravity        = 'pos lastPos pinned?',
+	link           = 'link',
+	input          = 'pos lastPos input aim heat target? link?',
 	particleSystem = 'particles opacity? pos?',
-	attractor = 'pos attraction',
+	attractor      = 'pos attraction',
+	trigger        = 'pos trigger'
 }
 
 local function spairs<K, V>(t: {K:V}, comparator: function(a: K, b: K): boolean): function(): (K, V)

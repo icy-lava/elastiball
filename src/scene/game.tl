@@ -1,4 +1,6 @@
 local record Game
+	enum Safety 'unsafe' 'safe' 'dying' end
+	
 	camera: cam11.Camera
 	flux: flux.Group
 	world: tiny.World
@@ -10,18 +12,54 @@ local record Game
 	levelName: string
 	
 	levelEnd: boolean
+	safety: Safety
 	fadeColor: color.RGBA
 	
 	__index: Game
 end
 Game.__index = Game
 
+function Game.new(): Game
+	return setmetatable({}, Game)
+end
+
+function Game:resetLevel()
+	if self.levelName == 'live' then
+		scene:enter(Game.new(), self.levelData)
+	else
+		scene:enter(Game.new(), self.levelName)
+	end
+end
+
+function Game:onDeath()
+	local tween = {value = 0}
+	self.flux:to(tween, 1, {value = 1})
+		:ease 'quadin'
+		:onupdate(function()
+			-- local fadeTo = color.labLerp(0.25, color.background, color.white)
+			local fadeTo = color.black
+			self.fadeColor = color.labLerp(tween.value, color.withAlpha(fadeTo, 0), fadeTo)
+		end)
+		:after(0.25, {})
+		:oncomplete(function()
+			self:resetLevel()
+		end)
+end
+
 function Game:update(dt: number)
 	self.input:update()
 	self.flux:update(dt)
+	
+	if self.safety ~= 'dying' then
+		self.safety = 'unsafe'
+	end
 	self.world:update(dt, function(_: tiny.World, system: tiny.System<any>): boolean
 		return not (system as table).draw
 	end)
+	if not self.levelEnd and self.safety == 'unsafe' then
+		self.safety = 'dying'
+		self:onDeath()
+	end
 	
 	if self.levelEnd then
 		local p = self.player
@@ -64,13 +102,16 @@ function Game:draw()
 	
 	self.camera:detach()
 	
+	love.graphics.print(self.safety)
+	
+	-- Solid color overlay
 	if self.fadeColor and self.fadeColor[4] > 0 then
 		local vpx, vpy, vpw, vph = self.camera:getViewport()
 		love.graphics.setColor(self.fadeColor)
 		love.graphics.rectangle('fill', vpx, vpy, vpw, vph)
 	end
 	
-	do -- Heat bar
+	if false then -- Heat bar
 		local barWidth = util.round(gw * 3 / 4)
 		local barY = gh - 100
 		local barLeft = vec2((gw - barWidth) / 2, barY)
@@ -121,66 +162,94 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	
 	self.flux = flux.group()
 	self.world = tiny.world()
+	self.input = config.input
+	self.safety = 'safe'
 	
-	self.world:addSystem(util.instance(require 'system.point'))
-	self.world:addSystem(util.instance(require 'system.attractor'))
-	
-	self.world:addSystem(util.instance(require 'system.input'))
-	self.world:addSystem(util.instance(require 'system.verlet'))
-	self.world:addSystem(util.instance(require 'system.gravity'))
-	self.world:addSystem(util.instance(require 'system.link'))
-	self.world:addSystem(util.instance(require 'system.update_particles'))
-	
-	self.world:addSystem(util.instance(require 'system.level_end'))
-	
-	self.world:addSystem(util.instance(require 'system.draw_level_end'))
-	self.world:addSystem(util.instance(require 'system.draw_particles'))
-	self.world:addSystem(util.instance(require 'system.draw_link'))
-	self.world:addSystem(util.instance(require 'system.draw_point'))
-	self.world:addSystem(util.instance(require 'system.draw_player'))
+	do -- Initialize systems
+		self.world:addSystem(util.instance(require 'system.point'))
+		self.world:addSystem(util.instance(require 'system.attractor'))
+		
+		self.world:addSystem(util.instance(require 'system.input'))
+		self.world:addSystem(util.instance(require 'system.verlet'))
+		self.world:addSystem(util.instance(require 'system.gravity'))
+		self.world:addSystem(util.instance(require 'system.link'))
+		self.world:addSystem(util.instance(require 'system.update_particles'))
+		self.world:addSystem(util.instance(require 'system.trigger'))
+		
+		self.world:addSystem(util.instance(require 'system.draw_level_end'))
+		self.world:addSystem(util.instance(require 'system.draw_particles'))
+		self.world:addSystem(util.instance(require 'system.draw_link'))
+		self.world:addSystem(util.instance(require 'system.draw_point'))
+		self.world:addSystem(util.instance(require 'system.draw_player'))
+	end
 	
 	local levelData: level.Data
-	if levelInfo is string then
-		self.levelName = levelInfo
-		local levelString = love.filesystem.read(string.format('asset/level/%s.json', self.levelName))
-		levelData = level.decode(levelString)
-	else
-		levelData = levelInfo
-		self.levelName = 'live'
+	do -- Load level data
+		if levelInfo is string then
+			self.levelName = levelInfo
+			local levelString = love.filesystem.read(string.format('asset/level/%s.json', self.levelName))
+			levelData = level.decode(levelString)
+		else
+			levelData = levelInfo
+			self.levelName = 'live'
+		end
+		self.levelData = levelData
 	end
-	self.levelData = levelData
 	
 	local points: {level.Data.UID:{string:any}} = {}
-	
-	for uid, point in pairs(levelData.points) do
-		local entity <total>: typedef.PointEntity = {
-			pos = point.pos.copy,
-			lastPos = point.pos.copy,
-			pinned = point.pinned,
-		}
-		self.world:addEntity(entity as table)
-		points[uid] = entity
+	do -- Initialize points
+		for uid, point in pairs(levelData.points) do
+			local entity <total>: typedef.PointEntity = {
+				pos = point.pos.copy,
+				lastPos = point.pos.copy,
+				pinned = point.pinned,
+			}
+			self.world:addEntity(entity as table)
+			points[uid] = entity
+		end
 	end
 	
-	for _, link in pairs(levelData.links) do
-		local a, b = points[link.a] as typedef.comp.Linked, points[link.b] as typedef.comp.Linked
-		local linc <total>: typedef.comp.Link = {
-			a = a,
-			b = b,
-			distance = (a.pos - b.pos).length,
-			error = 0,
-			strengthIn = nil,
-			strengthOut = nil,
-		}
-		local entity <total>: typedef.LinkEntity = {
-			link = linc,
-		}
-		self.world:addEntity(entity as table)
+	do -- Initialize safezones
+		-- It's probably OK to share the signal between multiple safezones
+		local sig: signal<string> = signal.new()
+		
+		sig:connect(function()
+			if self.safety ~= 'dying' then
+				self.safety = 'safe'
+			end
+		end)
+		
+		for _, safezone in pairs(levelData.safezones) do
+			local entity <total>: typedef.SafezoneEntity = {
+				pos = safezone.pos.copy,
+				trigger = {
+					radius = safezone.radius,
+					signal = sig,
+				}
+			}
+			self.world:addEntity(entity as table)
+		end
 	end
 	
-	self.input = config.input
+	do -- Initialize links
+		for _, link in pairs(levelData.links) do
+			local a, b = points[link.a] as typedef.comp.Linked, points[link.b] as typedef.comp.Linked
+			local linc <total>: typedef.comp.Link = {
+				a = a,
+				b = b,
+				distance = (a.pos - b.pos).length,
+				error = 0,
+				strengthIn = nil,
+				strengthOut = nil,
+			}
+			local entity <total>: typedef.LinkEntity = {
+				link = linc,
+			}
+			self.world:addEntity(entity as table)
+		end
+	end
 	
-	do
+	do -- Intialize player
 		local pos = levelData.player
 		local entity <total>: typedef.PlayerEntity = {
 			pos = pos.copy,
@@ -197,58 +266,69 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 		self.player = entity
 	end
 	
-	do
+	do -- Initialize end portal
 		local pos = levelData.levelEnd
 		local sig: signal<string> = signal.new()
 		
-		local ps1 = love.graphics.newParticleSystem(asset.alpha_image.circle)
-		ps1:setParticleLifetime(3, 4)
-		ps1:setEmissionRate(100)
-		ps1:setSpeed(-150, -100)
-		ps1:setRadialAcceleration(-100, -50)
-		ps1:setTangentialAcceleration(100, 7000)
-		ps1:setLinearDamping(0.1)
-		ps1:setEmissionArea('borderellipse', config.exit.radius * 1, config.exit.radius * 1, 0, true)
-		ps1:setInsertMode('random')
-		ps1:setSizes(config.particle.scaleToUnit * 10, config.particle.scaleToUnit * 20, config.particle.scaleToUnit * 50)
-		ps1:setColors(
-			color.withAlpha(color.exit, 0),
-			color.withAlpha(color.exit, 0.3),
-			color.withAlpha(color.exit, 0.9),
-			color.withAlpha(color.exit, 0)
-		)
+		local particles: {love.graphics.ParticleSystem} = {}
 		
-		local ps2 = love.graphics.newParticleSystem(asset.alpha_image.circle)
-		ps2:setParticleLifetime(3, 4)
-		ps2:setEmissionRate(50)
-		ps2:setSpeed(-150, -100)
-		ps2:setRadialAcceleration(5, 10)
-		ps2:setTangentialAcceleration(20, 50)
-		ps2:setEmissionArea('borderellipse', config.exit.radius * 2, config.exit.radius * 2, 0, true)
-		ps2:setInsertMode('random')
-		ps2:setSizes(config.particle.scaleToUnit * 10, config.particle.scaleToUnit * 30, config.particle.scaleToUnit * 100)
-		ps2:setColors(
-			color.withAlpha(color.exit, 0),
-			color.withAlpha(color.exit, 0.3),
-			color.withAlpha(color.exit, 0.9),
-			color.withAlpha(color.exit, 0)
-		)
+		do -- Particle system 1
+			local ps = love.graphics.newParticleSystem(asset.alpha_image.circle)
+			ps:setParticleLifetime(3, 4)
+			ps:setEmissionRate(100)
+			ps:setSpeed(-150, -100)
+			ps:setRadialAcceleration(-100, -50)
+			ps:setTangentialAcceleration(100, 7000)
+			ps:setLinearDamping(0.1)
+			ps:setEmissionArea('borderellipse', config.exit.radius * 1, config.exit.radius * 1, 0, true)
+			ps:setInsertMode('random')
+			ps:setSizes(config.particle.scaleToUnit * 10, config.particle.scaleToUnit * 20, config.particle.scaleToUnit * 50)
+			ps:setColors(
+				color.withAlpha(color.exit, 0),
+				color.withAlpha(color.exit, 0.3),
+				color.withAlpha(color.exit, 0.9),
+				color.withAlpha(color.exit, 0)
+			)
+			table.insert(particles, ps)
+		end
 		
-		local ps3 = love.graphics.newParticleSystem(asset.alpha_image.circle)
-		ps3:setParticleLifetime(3, 4)
-		ps3:setEmissionRate(100)
-		ps3:setSpeed(-30, -10)
-		ps3:setRadialAcceleration(-100, -50)
-		ps3:setLinearDamping(0.5)
-		ps3:setTangentialAcceleration(50, 100)
-		ps3:setEmissionArea('ellipse', config.exit.radius * 1.1, config.exit.radius * 1.1, 0, true)
-		ps3:setInsertMode('random')
-		ps3:setSizes(config.particle.scaleToUnit * 50, config.particle.scaleToUnit * 100, config.particle.scaleToUnit * 50)
-		ps3:setColors(
-			color.withAlpha(color.exit, 0),
-			color.withAlpha(color.exit, 0.8),
-			color.withAlpha(color.exit, 0)
-		)
+		do -- Particle system 2
+			local ps = love.graphics.newParticleSystem(asset.alpha_image.circle)
+			ps:setParticleLifetime(3, 4)
+			ps:setEmissionRate(50)
+			ps:setSpeed(-150, -100)
+			ps:setRadialAcceleration(5, 10)
+			ps:setTangentialAcceleration(20, 50)
+			ps:setEmissionArea('borderellipse', config.exit.radius * 2, config.exit.radius * 2, 0, true)
+			ps:setInsertMode('random')
+			ps:setSizes(config.particle.scaleToUnit * 10, config.particle.scaleToUnit * 30, config.particle.scaleToUnit * 100)
+			ps:setColors(
+				color.withAlpha(color.exit, 0),
+				color.withAlpha(color.exit, 0.3),
+				color.withAlpha(color.exit, 0.9),
+				color.withAlpha(color.exit, 0)
+			)
+			table.insert(particles, ps)
+		end
+		
+		do -- Particle system 3
+			local ps = love.graphics.newParticleSystem(asset.alpha_image.circle)
+			ps:setParticleLifetime(3, 4)
+			ps:setEmissionRate(100)
+			ps:setSpeed(-30, -10)
+			ps:setRadialAcceleration(-100, -50)
+			ps:setLinearDamping(0.5)
+			ps:setTangentialAcceleration(50, 100)
+			ps:setEmissionArea('ellipse', config.exit.radius * 1.1, config.exit.radius * 1.1, 0, true)
+			ps:setInsertMode('random')
+			ps:setSizes(config.particle.scaleToUnit * 50, config.particle.scaleToUnit * 100, config.particle.scaleToUnit * 50)
+			ps:setColors(
+				color.withAlpha(color.exit, 0),
+				color.withAlpha(color.exit, 0.8),
+				color.withAlpha(color.exit, 0)
+			)
+			table.insert(particles, ps)
+		end
 		
 		local entity <total>: typedef.LevelEndEntity = {
 			pos = pos.copy,
@@ -256,7 +336,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 				radius = config.exit.radius,
 				signal = sig,
 			},
-			particles = {ps3, ps2, ps1},
+			particles = particles,
 			attraction = {
 				force = 1000,
 				distMin = 150,
@@ -289,7 +369,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 						end)
 				end	
 				
-				do
+				do -- Camera rotation tween
 					local tween = {value = 0}
 					local rot = cam:getAngle()
 					self.flux:to(tween, 2, {value = 1})
@@ -315,9 +395,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	end
 	
 	self.world:refresh()
-	
 	self:resize(gw, gh)
-	
 	love.mouse.setRelativeMode(true)
 end
 
@@ -325,18 +403,10 @@ function Game:leave()
 	love.mouse.setRelativeMode(false)
 end
 
-function Game.new(): Game
-	return setmetatable({}, Game)
-end
-
 function Game:keypressed(key: string)
 	if cli.dev then
 		if key == 'r' and love.keyboard.isDown('lctrl', 'rctrl') then
-			if self.levelName == 'live' then
-				scene:enter(Game.new(), self.levelData)
-			else
-				scene:enter(Game.new(), self.levelName)
-			end
+			self:resetLevel()
 			return
 		end
 		if key == 'escape' and self.levelName == 'live' then
