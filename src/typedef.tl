@@ -84,10 +84,7 @@ local record InputEntity
 	input: comp.Input
 	lastPos: comp.LastPos
 	link: comp.Link
-	mass: comp.Mass
-	opacity: comp.Opacity
 	pos: comp.Pos
-	scale: comp.Scale
 	target: comp.Target
 end
 

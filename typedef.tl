@@ -55,7 +55,7 @@ local systems: {string:string} = {
 	verlet = 'pos lastPos pinned?',
 	gravity = 'pos lastPos pinned?',
 	link = 'link',
-	input = 'pos lastPos input aim heat opacity? scale? mass? target? link?',
+	input = 'pos lastPos input aim heat target? link?',
 	particleSystem = 'particles opacity? pos?',
 	attractor = 'pos attraction',
 }
