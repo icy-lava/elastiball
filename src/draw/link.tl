@@ -1,11 +1,4 @@
-local system = util.drawSystem(typedef.LinkEntity)
-
-function system:preProcess(_: number)
-	love.graphics.push 'all'
-	love.graphics.setColor(1, 1, 1, 1)
-end
-
-function system:process(entity: typedef.LinkEntity, _: number)
+return function(entity: typedef.FullEntity)
 	local link = entity.link
 	local apos, bpos = link.a.pos, link.b.pos
 	local delta = (bpos - apos).normalized
@@ -19,9 +12,3 @@ function system:process(entity: typedef.LinkEntity, _: number)
 	love.graphics.setLineWidth(config.link.lineWidth * thiccnessMult)
 	love.graphics.line(apos.x, apos.y, bpos.x, bpos.y)
 end
-
-function system:postProcess(_: number)
-	love.graphics.pop()
-end
-
-return system

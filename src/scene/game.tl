@@ -227,12 +227,8 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 		self.world:addSystem(util.instance(require 'system.update_particles'))
 		self.world:addSystem(util.instance(require 'system.trigger'))
 		
-		self.world:addSystem(util.instance(require 'system.draw_level_end'))
 		self.world:addSystem(util.instance(require 'system.draw_particles'))
-		self.world:addSystem(util.instance(require 'system.draw_link'))
-		self.world:addSystem(util.instance(require 'system.draw_point'))
-		self.world:addSystem(util.instance(require 'system.draw_player'))
-		self.world:addSystem(util.instance(require 'system.draw_reticle'))
+		self.world:addSystem(util.instance(require 'system.drawable'))
 	end
 	
 	local levelData: level.Data
@@ -255,6 +251,8 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 				pos = point.pos.copy,
 				lastPos = point.pos.copy,
 				pinned = point.pinned,
+				drawables = {require 'draw.point'},
+				layer = 100,
 			}
 			self.world:addEntity(entity as table)
 			points[uid] = entity
@@ -277,7 +275,9 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 				trigger = {
 					radius = safezone.radius,
 					signal = sig,
-				}
+				},
+				drawables = nil,
+				layer = nil,
 			}
 			self.world:addEntity(entity as table)
 		end
@@ -296,6 +296,8 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 			}
 			local entity <total>: typedef.LinkEntity = {
 				link = linc,
+				drawables = {require 'draw.link'},
+				layer = 20,
 			}
 			self.world:addEntity(entity as table)
 		end
@@ -307,11 +309,13 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 			pos = pos.copy,
 			lastPos = pos.copy,
 			aim = vec2(1, 0),
+			drawables = {require 'draw.player', require 'draw.reticle'},
 			mass = config.player.body.mass,
 			heat = 0,
 			input = self.input,
 			opacity = 1,
 			scale = 1,
+			layer = 200,
 		}
 		self.world:addEntity(entity as table)
 		self.camera = cam11(pos.x, pos.y, 1, 0, 0, 0, gw, gh)
@@ -389,6 +393,8 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 				signal = sig,
 			},
 			particles = particles,
+			drawables = {require 'draw.portal'},
+			layer = 10,
 			attraction = {
 				force = 1000,
 				distMin = 150,

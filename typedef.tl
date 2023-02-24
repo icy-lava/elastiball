@@ -10,6 +10,8 @@ local components: RecordDef = {
 	aim_t = 'vec2',
 	input_t = 'baton.Player',
 	particles_t = '{love.graphics.ParticleSystem}',
+	drawables_t = '{love.graphics.Drawable | function(entity: FullEntity)}',
+	layer_t = 'integer',
 	target_t = {
 		pos = 'vec2',
 		pinned = 'boolean'
@@ -28,6 +30,7 @@ local components: RecordDef = {
 		strengthIn = 'number',
 		strengthOut = 'number',
 	},
+	linkRef_t = 'LinkEntity',
 	trigger_t = {
 		radius = 'number',
 		inverse = 'boolean',
@@ -46,18 +49,19 @@ local systems: {string:string} = {
 	full = table.concat(compKeys, ' '),
 	
 	-- Entity types
-	player         = 'pos lastPos aim heat input mass? opacity? scale?',
-	levelEnd       = 'pos trigger particles attraction',
-	point          = 'pos lastPos pinned',
-	safezone       = 'pos trigger',
+	player         = 'pos drawables? layer? lastPos aim heat input mass? opacity? scale?',
+	point          = 'pos drawables? layer? lastPos pinned',
+	safezone       = 'pos drawables? layer? trigger',
+	link           = 'link drawables? layer?',
+	levelEnd       = 'pos drawables? layer? trigger particles attraction',
 	
 	-- Systems
 	aim            = 'pos aim opacity?',
+	drawable       = 'drawables layer? pos? scale? opacity?',
 	drawnPlayer    = 'pos lastPos aim heat opacity? scale? target?',
 	verlet         = 'pos lastPos pinned?',
 	gravity        = 'pos lastPos pinned?',
-	link           = 'link',
-	input          = 'pos lastPos input heat aim? target? link?',
+	input          = 'pos lastPos input heat aim? target? linkRef?',
 	particleSystem = 'particles opacity? pos?',
 	attractor      = 'pos attraction',
 	trigger        = 'pos trigger'
@@ -130,8 +134,6 @@ if command == 'gen' then
 	local output: {string} = {}
 	local exports: {string} = {}
 	
-	table.insert(output, localRecord('comp', components))
-	
 	local filters: {string} = {}
 	for name, compList in spairs(systems) do
 		local ename = name:gsub('^.', string.upper) .. 'Entity'
@@ -152,6 +154,8 @@ if command == 'gen' then
 		table.insert(filters, string.format('[%s] = tiny.requireAll(%s)', ename, table.concat(req, ', ')))
 		table.insert(exports, string.format('%s = %s', ename, ename))
 	end
+	
+	table.insert(output, localRecord('comp', components))
 	
 	local filtersPrefix = 'local entityFilter: {FullEntity:tiny.EntityFilter} = '
 	table.insert(output, string.format('%s{\n\t%s,\n}', filtersPrefix, table.concat(filters, ',\n\t')))

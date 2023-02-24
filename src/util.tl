@@ -68,6 +68,13 @@ function util.drawSystem<T>(entity: T): tiny.System<T>
 	return system
 end
 
+function util.sortedDrawSystem<T>(entity: T): tiny.System<T>
+	local system: tiny.System<T> = util.sortedProcessingSystem(entity)
+	local temp = system as table
+	temp.draw = true
+	return system
+end
+
 function util.findSystemInstance<T, U>(systems: {tiny.System<U>}, class: tiny.System<T>): tiny.System<T>
 	for _, syst in ipairs(systems as {tiny.System<any>}) do
 		if syst.filter == class.filter then

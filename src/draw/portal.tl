@@ -1,12 +1,4 @@
-local system = util.drawSystem(typedef.LevelEndEntity)
-
-function system:preProcess(_: number)
-	love.graphics.push 'all'
-	love.graphics.setColor(1, 1, 1, 1)
-	love.graphics.setLineWidth(3)
-end
-
-function system:process(entity: typedef.LevelEndEntity, _: number)
+return function(entity: typedef.FullEntity)
 	love.graphics.setColor(color.exit)
 	-- love.graphics.circle('fill', entity.pos.x, entity.pos.y, config.exit.radius * 0.5)
 	local faded: love.graphics.Image = asset.alpha_image.faded
@@ -17,9 +9,3 @@ function system:process(entity: typedef.LevelEndEntity, _: number)
 		love.graphics.draw(faded as love.graphics.Drawable, entity.pos.x, entity.pos.y, 0, scale / i, scale / i, ox, oy)
 	end
 end
-
-function system:postProcess(_: number)
-	love.graphics.pop()
-end
-
-return system

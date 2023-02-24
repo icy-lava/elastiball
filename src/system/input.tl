@@ -24,7 +24,7 @@ function system:process(entity: typedef.InputEntity, dt: number)
 		local vnormal = (entity.pos - entity.lastPos).normalized
 		entity.pos = entity.pos + vnormal * dt ^ 2 * 100 * entity.heat
 		
-		if not entity.link then
+		if not entity.linkRef then
 			local target: entity.target
 			if entity.aim.length >= 0.3 then
 				local naim = entity.aim.normalized
@@ -55,7 +55,7 @@ function system:process(entity: typedef.InputEntity, dt: number)
 	end
 	
 	if entity.input:down 'grab' then
-		if not entity.link and entity.target then
+		if not entity.linkRef and entity.target then
 			local link <total>: typedef.comp.Link = {
 				-- FIXME: need a more robust way to convert entities here
 				a = entity as typedef.comp.Linked,
@@ -65,15 +65,22 @@ function system:process(entity: typedef.InputEntity, dt: number)
 				strengthOut = 0.02,
 				error = 0,
 			}
-			entity.link = link
 			
-			-- Refresh component filters
-			self.world:addEntity(entity as tiny.Entity)
+			-- TODO: there should be standard functions to initialize entities
+			local linkEntity <total>: typedef.LinkEntity = {
+				link = link,
+				drawables = {require 'draw.link'},
+				layer = 20,
+			}
+			
+			entity.linkRef = linkEntity
+			
+			self.world:addEntity(linkEntity as tiny.Entity)
 		end
 	else
-		if entity.link then
-			entity.link = nil
-			self.world:addEntity(entity as tiny.Entity)
+		if entity.linkRef then
+			self.world:removeEntity(entity.linkRef as tiny.Entity)
+			entity.linkRef = nil
 		end
 	end
 end
