@@ -132,17 +132,17 @@ local record VerletEntity
 end
 
 local entityFilter: {FullEntity:tiny.EntityFilter} = {
-	[AttractorEntity] = tiny.requireAll("pos", "attraction"),
-	[DrawnPlayerEntity] = tiny.requireAll("pos", "lastPos", "aim", "heat"),
-	[FullEntity] = tiny.requireAll("pos", "target", "trigger", "pinned", "opacity", "scale", "particles", "link", "linked", "heat", "aim", "attraction", "input", "mass", "lastPos"),
-	[GravityEntity] = tiny.requireAll("pos", "lastPos"),
-	[InputEntity] = tiny.requireAll("pos", "lastPos", "input", "aim", "heat"),
-	[LevelEndEntity] = tiny.requireAll("pos", "trigger", "particles", "attraction"),
+	[AttractorEntity] = tiny.requireAll("attraction", "pos"),
+	[DrawnPlayerEntity] = tiny.requireAll("aim", "heat", "lastPos", "pos"),
+	[FullEntity] = tiny.requireAll("aim", "attraction", "heat", "input", "lastPos", "link", "linked", "mass", "opacity", "particles", "pinned", "pos", "scale", "target", "trigger"),
+	[GravityEntity] = tiny.requireAll("lastPos", "pos"),
+	[InputEntity] = tiny.requireAll("aim", "heat", "input", "lastPos", "pos"),
+	[LevelEndEntity] = tiny.requireAll("attraction", "particles", "pos", "trigger"),
 	[LinkEntity] = tiny.requireAll("link"),
 	[ParticleSystemEntity] = tiny.requireAll("particles"),
-	[PlayerEntity] = tiny.requireAll("pos", "lastPos", "aim", "heat", "input"),
-	[PointEntity] = tiny.requireAll("pos", "lastPos", "pinned"),
-	[VerletEntity] = tiny.requireAll("pos", "lastPos"),
+	[PlayerEntity] = tiny.requireAll("aim", "heat", "input", "lastPos", "pos"),
+	[PointEntity] = tiny.requireAll("lastPos", "pinned", "pos"),
+	[VerletEntity] = tiny.requireAll("lastPos", "pos"),
 }
 
 return {

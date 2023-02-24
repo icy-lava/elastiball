@@ -145,6 +145,7 @@ if command == 'gen' then
 		
 		table.insert(output, localRecord(ename, comps))
 		
+		table.sort(req)
 		table.insert(filters, string.format('[%s] = tiny.requireAll(%s)', ename, table.concat(req, ', ')))
 		table.insert(exports, string.format('%s = %s', ename, ename))
 	end
