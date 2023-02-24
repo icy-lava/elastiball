@@ -6,6 +6,9 @@ return {
 		radius = 12,
 		distance = 100
 	},
+	camera = {
+		zoom = 1.25
+	},
 	player = {
 		heat = {
 			up = 5,

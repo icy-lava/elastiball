@@ -2,6 +2,7 @@ local record Game
 	enum Safety 'unsafe' 'safe' 'dying' end
 	
 	camera: cam11.Camera
+	cameraZoom: number
 	flux: flux.Group
 	world: tiny.World
 	input: baton.Player
@@ -23,11 +24,34 @@ function Game.new(): Game
 	return setmetatable({}, Game)
 end
 
+function Game:gotoLevel(name: string)
+	scene:enter(Game.new(), name)
+end
+
 function Game:resetLevel()
 	if self.levelName == 'live' then
 		scene:enter(Game.new(), self.levelData)
 	else
-		scene:enter(Game.new(), self.levelName)
+		self:gotoLevel(self.levelName)
+	end
+end
+
+function Game:endGame()
+	scene:enter(require 'scene.game_over'.new())
+end
+
+function Game:nextLevel()
+	if self.levelName == 'live' then
+		scene:pop()
+	else
+		local levelNum = assert(tonumber(self.levelName), 'could not convert level name to number')
+		levelNum = levelNum + 1
+		local levelName = tostring(levelNum)
+		if util.levelExists(levelName) then
+			self:gotoLevel(levelName)
+		else
+			self:endGame()
+		end
 	end
 end
 
@@ -91,6 +115,10 @@ function Game:onLevelEnd()
 			:onupdate(function()
 				self.fadeColor = color.withAlpha(color.black, fade.value)
 			end)
+			:after(0.25, {})
+			:oncomplete(function()
+				self:nextLevel()
+			end)
 	end
 	
 	self:immobilizePlayer()
@@ -133,16 +161,20 @@ function Game:update(dt: number)
 		lastPos = pos2.copy
 	end
 	
-	local delta = (pos - lastPos) * dt
+	local delta = (pos - lastPos) / dt
 	local camPos = vec2(self.camera:getPos())
-	local targetPos = pos + delta * vec2(40000 * 2, 40000)
+	local mult = 1
+	local targetPos = pos + delta * vec2(mult * 1.5, mult)
 	camPos = util.damp(0.4, dt, camPos, targetPos)
 	self.camera:setPos(camPos.x, camPos.y)
+	self.cameraZoom = util.damp(0.25, dt, self.cameraZoom, 1 / 1.125 ^ (delta.length2 / 4e5))
 end
 
 function Game:draw()
 	local gw, gh = love.graphics.getDimensions()
 	
+	local prevZoom = self.camera:getZoom()
+	self.camera:setZoom(prevZoom * self.cameraZoom * config.camera.zoom)
 	self.camera:attach(true)
 	
 	love.graphics.clear(color.background)
@@ -152,8 +184,7 @@ function Game:draw()
 	end)
 	
 	self.camera:detach()
-	
-	love.graphics.print(self.safety)
+	self.camera:setZoom(prevZoom)
 	
 	-- Solid color overlay
 	if self.fadeColor and self.fadeColor[4] > 0 then
@@ -176,6 +207,9 @@ function Game:draw()
 		util.crect('fill', barRight.x, barRight.y, 6, 32, 3)
 		util.crect('fill', barCenter.x, barCenter.y, (barWidth - pad * 2 - 6) * heat + 6, 6, 3)
 	end
+	
+	love.graphics.setColor(1, 1, 1, 1)
+	love.graphics.print(tostring(love.timer.getFPS()))
 end
 
 function Game:resize(width: integer, height: integer)
@@ -215,6 +249,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	self.world = tiny.world()
 	self.input = config.input
 	self.safety = 'safe'
+	self.cameraZoom = 1
 	
 	do -- Initialize systems
 		self.world:addSystem(util.instance(require 'system.point'))
@@ -235,7 +270,8 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	do -- Load level data
 		if levelInfo is string then
 			self.levelName = levelInfo
-			local levelString = love.filesystem.read(string.format('asset/level/%s.json', self.levelName))
+			local path = util.levelNameToPath(self.levelName)
+			local levelString = love.filesystem.read(path)
 			levelData = level.decode(levelString)
 		else
 			levelData = levelInfo

@@ -3,7 +3,7 @@ local pointSystem = require 'system.point'
 
 function system:process(entity: typedef.InputEntity, dt: number)
 	entity.input:update()
-	local move = vec2(entity.input:get 'move') * dt ^ 2 * vec2(300, 150)
+	local move = vec2(entity.input:get 'move') * dt ^ 2 * vec2(300, 100)
 	entity.pos = entity.pos + move
 	
 	if entity.aim then

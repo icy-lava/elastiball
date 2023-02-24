@@ -133,6 +133,15 @@ function util.instance<T>(t: T): T
 	return setmetatable({} as T, {__index = t})
 end
 
+function util.levelNameToPath(name: string): string
+	return string.format('asset/level/%s.json', name)
+end
+
+function util.levelExists(name: string): boolean
+	local path = util.levelNameToPath(name)
+	return not not love.filesystem.getInfo(path, 'file')
+end
+
 function util.imerge<T>(a: {T}, b: {T}): {T}
 	local result: {T} = {}
 	for i = 1, #a do
