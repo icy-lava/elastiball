@@ -56,6 +56,9 @@ function love.load()
 			}
 		},
 	}
+	function gotoMenu()
+		scene:enter(require 'scene.menu'.new())
+	end
 	cam11 = require 'cam11'
 	scene:hook {
 		exclude = {
@@ -69,7 +72,7 @@ function love.load()
 	if cli.editor then
 		scene:enter(require 'scene.editor'.new())
 	else
-		scene:enter(require 'scene.game'.new(), '1')
+		scene:enter(require 'scene.menu'.new())
 	end
 end
 
@@ -90,6 +93,9 @@ function love.keypressed(...)
 		love.window.setFullscreen(not love.window.getFullscreen())
 		love.event.push('resize', love.graphics.getDimensions())
 	else
+		if key == 'escape' then
+			love.mouse.setRelativeMode(false)
+		end
 		scene:emit('keypressed', ...)
 		return
 	end

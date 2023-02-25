@@ -6,6 +6,12 @@ return {
 		radius = 12,
 		distance = 100
 	},
+	button = {
+		size = vec2(280, 80),
+		radius = 24,
+		spacing = 24,
+		pad = 48,
+	},
 	camera = {
 		zoom = 1.25
 	},

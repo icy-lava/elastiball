@@ -37,12 +37,16 @@ function Game:resetLevel()
 end
 
 function Game:endGame()
-	scene:enter(require 'scene.game_over'.new())
+	gotoMenu()
+	love.mouse.setRelativeMode(false)
 end
 
 function Game:nextLevel()
 	if self.levelName == 'live' then
 		scene:pop()
+	elseif self.levelName == 'menu' then
+		self:gotoLevel('1')
+		love.mouse.setRelativeMode(true)
 	else
 		local levelNum = assert(tonumber(self.levelName), 'could not convert level name to number')
 		levelNum = levelNum + 1
@@ -50,7 +54,10 @@ function Game:nextLevel()
 		if util.levelExists(levelName) then
 			self:gotoLevel(levelName)
 		else
-			self:endGame()
+			self.flux:to({}, 2, {})
+			:oncomplete(function()
+				self:endGame()
+			end)
 		end
 	end
 end
@@ -79,6 +86,7 @@ function Game:onDeath()
 end
 
 function Game:onLevelEnd()
+	self.levelEnd = true
 	do -- Opacity tween
 		self.player.opacity = self.player.opacity or 1
 		self.player.scale = self.player.scale or 1
@@ -483,11 +491,11 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	
 	self.world:refresh()
 	self:resize(gw, gh)
-	love.mouse.setRelativeMode(true)
+	-- love.mouse.setRelativeMode(true)
 end
 
 function Game:leave()
-	love.mouse.setRelativeMode(false)
+	-- love.mouse.setRelativeMode(false)
 end
 
 function Game:keypressed(key: string)
@@ -499,10 +507,6 @@ function Game:keypressed(key: string)
 		if key == 'escape' and self.levelName == 'live' then
 			scene:pop()
 		end
-	end
-	if key == 'escape' then
-		love.mouse.setRelativeMode(false)
-		return
 	end
 end
 

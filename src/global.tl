@@ -77,8 +77,8 @@ else
 end
 
 global baton = require 'baton'
-global config = require 'config'
 global vec2 = require 'brinevector'
+global config = require 'config'
 global GRAVITY = vec2(0, 400)
 
 global json = require 'json'
@@ -93,3 +93,4 @@ global vivid = require 'vivid'
 global util = require 'util'
 global color = require 'color'
 global level = require 'level'
+global ui = require 'ui'

@@ -1,5 +1,8 @@
 require 'love'
 require 'global'
+global function gotoMenu()
+	
+end
 global cam11 = require 'cam11'
 global cargo = require 'cargo'
 global record asset
