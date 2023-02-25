@@ -19,11 +19,17 @@ local record level
 			radius: number
 		end
 		
+		record Solid
+			uid: UID
+			points: {vec2}
+		end
+		
 		player: vec2
 		levelEnd: vec2
 		points: {UID:Point}
 		links: {UID:Link}
 		safezones: {UID:Safezone}
+		solids: {UID:Solid}
 		lastUID: integer
 	end
 end
@@ -56,6 +62,7 @@ function level.decode(str: string): level.Data
 	pos2vec(data as table)
 	data.levelEnd = data.levelEnd or vec2()
 	data.safezones = data.safezones or {}
+	data.solids = data.solids or {}
 	return data
 end
 

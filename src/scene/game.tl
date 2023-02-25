@@ -343,22 +343,17 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	end
 	
 	do -- Initialize polygons
-		-- for _, poly in pairs(levelData.safezones) do
-		-- 	local entity <total>: typedef.SafezoneEntity = {
-		-- 		pos = safezone.pos.copy,
-		-- 		trigger = {
-		-- 			radius = safezone.radius,
-		-- 			signal = sig,
-		-- 		},
-		-- 		drawables = nil,
-		-- 		layer = nil,
-		-- 	}
-		-- 	self.world:addEntity(entity as table)
-		-- end
-		local entity <total>: typedef.SolidsEntity = {
-			solids = {shapes.newPolygonShape(100, 100, 200, 100, 200, 200, 100, 200)}
-		}
-		self.world:addEntity(entity as table)
+		for _, solid in pairs(levelData.solids) do
+			local coords: {number} = {}
+			for _, pos in ipairs(solid.points) do
+				table.insert(coords, pos.x)
+				table.insert(coords, pos.y)
+			end
+			local entity <total>: typedef.SolidsEntity = {
+				solids = {shapes.newPolygonShape(table.unpack(coords))}
+			}
+			self.world:addEntity(entity as table)
+		end
 	end
 	
 	do -- Intialize player

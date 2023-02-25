@@ -28,10 +28,15 @@ local record Editor
 	end
 	safeDrag: SafeDrag
 	
+	record Polygon
+		points: {vec2}
+	end
+	polygon: Polygon
+	
 	selected: {Data.UID:boolean}
 	
 	enum Mode
-		'select' 'move' 'point' 'pin' 'link' 'player' 'end' 'safezone'
+		'select' 'move' 'point' 'pin' 'link' 'player' 'end' 'safezone' 'polygon'
 	end
 	mode: Mode
 	
@@ -71,7 +76,7 @@ function EditorModal.new(): EditorModal
 	return setmetatable({}, EditorModal)
 end
 
-local modes: {Editor.Mode} = {'select', 'move', 'point', 'pin', 'link', 'player', 'end', 'safezone'}
+local modes: {Editor.Mode} = {'select', 'move', 'point', 'pin', 'link', 'player', 'end', 'safezone', 'polygon'}
 local modeIndices: {Editor.Mode:integer} = {}
 for i, mode in ipairs(modes) do
 	modeIndices[mode] = i
@@ -98,6 +103,8 @@ function Editor:deleteUID(uid: level.Data.UID)
 		self.data.links[uid] = nil
 	elseif self.data.safezones[uid] then
 		self.data.safezones[uid] = nil
+	elseif self.data.solids[uid] then
+		self.data.solids[uid] = nil
 	else
 		log.warn('tried to delete a non-existant uid: ' .. tostring(uid))
 	end
@@ -177,6 +184,15 @@ function Editor:moveUID(uid: level.Data.UID, move: vec2, relative: boolean): boo
 		return true
 	end
 	
+	local solid = self.data.solids[uid]
+	if solid then
+		local points = solid.points
+		for i, pos in ipairs(points) do
+			points[i] = (relative and pos or vec2()) + move 
+		end
+		return true
+	end
+	
 	return false
 end
 
@@ -237,6 +253,7 @@ function Editor:enter()
 		points    = {},
 		links     = {},
 		safezones = {},
+		solids    = {},
 		player    = vec2(0, 0),
 		lastUID   = 0,
 		levelEnd  = vec2(100, 0),
@@ -246,6 +263,7 @@ function Editor:enter()
 		Link     = nil,
 		Point    = nil,
 		Safezone = nil,
+		Solid    = nil,
 	}
 	self.data = data
 	
@@ -272,12 +290,39 @@ function Editor:wheelmoved(_: number, dy: number)
 	self.camera:setPos(self.camera:getX() + delta.x, self.camera:getY() + delta.y)
 end
 
+function Editor:endPolygon()
+	if self.polygon then
+		local pcount = #self.polygon.points
+		if pcount >= 3 then
+			local uid = self:newUID()
+			local solid <total>: level.Data.Solid = {
+				uid = uid,
+				points = self.polygon.points,
+			}
+			self.data.solids[uid] = solid
+		else
+			log.warn(string.format('tried to end polygon with %s points', pcount))
+		end
+	else
+		log.warn 'tried to end polygon, but there was no polygon being made'
+	end
+	self.polygon = nil
+end
+
 function Editor:mousepressed(x: integer, y: integer, button: integer)
 	local wpos = vec2(self.camera:toWorld(x, y))
 	
 	if button == 3 then
 		self.drag = {startPos = wpos.copy}
 		return
+	end
+	
+	
+	if button == 2 then
+		if self.mode == 'polygon' then
+			self:endPolygon()
+			return
+		end
 	end
 	
 	if button == 1 then
@@ -332,6 +377,14 @@ function Editor:mousepressed(x: integer, y: integer, button: integer)
 			}
 		end
 		
+		if self.mode == 'polygon' then
+			if not self.polygon then
+				self.polygon = {points = {}}
+			end
+			table.insert(self.polygon.points, wpos.copy)
+			self:deselectAll()
+		end
+		
 		if self.mode == 'player' or self.mode == 'end' then
 			self:deselectAll()
 		end
@@ -356,6 +409,16 @@ function Editor:mousereleased(mx: integer, my: integer, button: integer)
 			end
 			for uid, safezone in pairs(self.data.safezones) do
 				if self:isVecInSelection(safezone.pos) then
+					self.selected[uid] = true
+				end
+			end
+			for uid, solid in pairs(self.data.solids) do
+				local pos = vec2()
+				for _, point in ipairs(solid.points) do
+					pos = pos + point
+				end
+				pos = pos / #solid.points
+				if self:isVecInSelection(pos) then
 					self.selected[uid] = true
 				end
 			end
@@ -442,6 +505,57 @@ function Editor:draw()
 	love.graphics.clear(color.background)
 	
 	local wpos = vec2(self.camera:toWorld(love.mouse.getPosition()))
+	
+	do -- Draw solids
+		local solids = self.data.solids
+		if self.polygon then
+			local uid = '0'
+			local points = self.polygon.points
+			if ((points[#points] or wpos) - wpos).length > 5 then
+				points = util.imerge(points, {wpos.copy})
+			end
+			local poly <total>: level.Data.Solid = {
+				uid = uid,
+				points = points,
+			}
+			solids = util.merge(solids, {[uid] = poly})
+		end
+		for uid, solid in pairs(solids) do
+			love.graphics.setColor(self:properColor(uid, color.solid))
+			local points = solid.points
+			local pcount = #points
+			if pcount == 1 then
+				local pos = points[1]
+				love.graphics.circle('fill', pos.x, pos.y, 4)
+			elseif pcount == 2 then
+				local a = points[1]
+				local b = points[2]
+				love.graphics.setLineWidth(8)
+				love.graphics.line(a.x, a.y, b.x, b.y)
+				love.graphics.circle('fill', a.x, a.y, 4)
+				love.graphics.circle('fill', b.x, b.y, 4)
+			else
+				local coords: {number} = {}
+				for _, pos in ipairs(points) do
+					table.insert(coords, pos.x)
+					table.insert(coords, pos.y)
+				end
+				if love.math.isConvex(coords) then
+					love.graphics.polygon('fill', coords)
+				else
+					love.graphics.setColor(self:properColor(uid, color.unsafe))
+					local tris = {coords}
+					pcall(function()
+						tris = love.math.triangulate(coords)
+					end)
+					for _, tri in ipairs(tris) do
+						love.graphics.polygon('fill', tri)
+					end
+				end
+			end
+		end
+	end
+	
 	do -- Draw links
 		love.graphics.setLineWidth(config.link.lineWidth)
 		love.graphics.setColor(color.link)

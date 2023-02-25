@@ -1785,8 +1785,8 @@ global type love = record
 		setRandomSeed: function(seed: number)
 		setRandomSeed: function(low: number, high: number)
 		setRandomState: function(state: string)
-		triangulate: function(polygon: {number}): {number}
-		triangulate: function(...: number): {number}
+		triangulate: function(polygon: {number}): {{number}}
+		triangulate: function(...: number): {{number}}
 
 	end
 	type mouse = record
