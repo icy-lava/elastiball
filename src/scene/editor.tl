@@ -754,11 +754,14 @@ function Editor:resume(modal: EditorModal, data: string)
 		else
 			log.warn('unknown op: ' .. tostring(modal.ctx.op))
 		end
+	else
+		love.mouse.setRelativeMode(false)
 	end
 end
 
 function Editor:keypressed(key: string)
 	if key == 'f5' then
+		love.mouse.setRelativeMode(true)
 		scene:push(require 'scene.game'.new(), self.data)
 		return
 	end

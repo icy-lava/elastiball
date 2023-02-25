@@ -10,6 +10,7 @@ local color = {
 	RGBA = RGBA,
 	
 	player: RGB = hex '#c54789',
+	reticle: RGB = {vivid.LCHtoRGB(20, 60, 300)},
 	hot: RGB = hex '#f70041',
 	heatbar: RGB = hex '#969696',
 	exit: RGB = hex '#222222',

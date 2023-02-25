@@ -14,6 +14,7 @@ local components: RecordDef = {
 	layer_t = 'integer',
 	solids_t = '{shapes.Shape}',
 	polygon_t = '{vec2}',
+	velocityEmission_t = 'number',
 	target_t = {
 		pos = 'vec2',
 		pinned = 'boolean'
@@ -51,7 +52,7 @@ local systems: {string:string} = {
 	full = table.concat(compKeys, ' '),
 	
 	-- Entity types
-	player         = 'pos drawables? layer? lastPos aim heat input mass? opacity? scale?',
+	player         = 'pos particles? velocityEmission? drawables? layer? lastPos aim heat input mass? opacity? scale?',
 	point          = 'pos drawables? layer? lastPos pinned',
 	safezone       = 'pos drawables? layer? trigger',
 	link           = 'link drawables? layer?',
@@ -66,7 +67,7 @@ local systems: {string:string} = {
 	verlet         = 'pos lastPos pinned?',
 	gravity        = 'pos lastPos pinned?',
 	input          = 'pos lastPos input heat aim? target? linkRef?',
-	particleSystem = 'particles opacity? pos?',
+	particleSystem = 'particles velocityEmission? opacity? pos? lastPos?',
 	attractor      = 'pos attraction',
 	trigger        = 'pos trigger'
 }

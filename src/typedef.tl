@@ -48,6 +48,7 @@ local record FullEntity
 	solids: comp.Solids
 	target: comp.Target
 	trigger: comp.Trigger
+	velocityEmission: comp.VelocityEmission
 end
 
 local record GravityEntity
@@ -82,9 +83,11 @@ local record LinkEntity
 end
 
 local record ParticleSystemEntity
+	lastPos: comp.LastPos
 	opacity: comp.Opacity
 	particles: comp.Particles
 	pos: comp.Pos
+	velocityEmission: comp.VelocityEmission
 end
 
 local record PlayerEntity
@@ -96,8 +99,10 @@ local record PlayerEntity
 	layer: comp.Layer
 	mass: comp.Mass
 	opacity: comp.Opacity
+	particles: comp.Particles
 	pos: comp.Pos
 	scale: comp.Scale
+	velocityEmission: comp.VelocityEmission
 end
 
 local record PointEntity
@@ -180,6 +185,7 @@ local record comp
 		radius: number
 		signal: signal<string>
 	end
+	type VelocityEmission = number
 end
 
 local entityFilter: {FullEntity:tiny.EntityFilter} = {
@@ -187,7 +193,7 @@ local entityFilter: {FullEntity:tiny.EntityFilter} = {
 	[AttractorEntity] = tiny.requireAll("attraction", "pos"),
 	[DrawableEntity] = tiny.requireAll("drawables"),
 	[DrawnPlayerEntity] = tiny.requireAll("aim", "heat", "lastPos", "pos"),
-	[FullEntity] = tiny.requireAll("aim", "attraction", "drawables", "heat", "input", "lastPos", "layer", "link", "linkRef", "linked", "mass", "opacity", "particles", "pinned", "polygon", "pos", "scale", "solids", "target", "trigger"),
+	[FullEntity] = tiny.requireAll("aim", "attraction", "drawables", "heat", "input", "lastPos", "layer", "link", "linkRef", "linked", "mass", "opacity", "particles", "pinned", "polygon", "pos", "scale", "solids", "target", "trigger", "velocityEmission"),
 	[GravityEntity] = tiny.requireAll("lastPos", "pos"),
 	[InputEntity] = tiny.requireAll("heat", "input", "lastPos", "pos"),
 	[LevelEndEntity] = tiny.requireAll("attraction", "particles", "pos", "trigger"),

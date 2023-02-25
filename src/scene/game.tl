@@ -105,7 +105,7 @@ end
 function Game:onLevelEnd()
 	self.levelEnd = true
 	
-	if self.levelName ~= 'menu' then
+	if self.levelName ~= 'menu' and self.levelName ~= 'live' then
 		local time = util.ticksToSecs(self.ticks)
 		stats.runTimes[self.levelName] = time
 		stats.currentTotal = stats.currentTotal + time
@@ -252,7 +252,7 @@ function Game:draw()
 	
 	-- if cli.dev then
 	-- 	love.graphics.setColor(1, 1, 1, 1)
-	-- 	love.graphics.print(tostring(love.timer.getFPS()))
+	-- 	love.graphics.print(tostring(love.timer.getFPS()), 16, 16)
 	-- end
 end
 
@@ -406,25 +406,6 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 		end
 	end
 	
-	do -- Intialize player
-		local pos = levelData.player
-		local entity <total>: typedef.PlayerEntity = {
-			pos = pos.copy,
-			lastPos = pos.copy,
-			aim = vec2(1, 0),
-			drawables = {require 'draw.player', require 'draw.reticle'},
-			mass = config.player.body.mass,
-			heat = 0,
-			input = self.input,
-			opacity = 1,
-			scale = 1,
-			layer = 200,
-		}
-		self.world:addEntity(entity as table)
-		self.camera = cam11(pos.x, pos.y, 1, 0, 0, 0, gw, gh)
-		self.player = entity
-	end
-	
 	do -- Initialize end portal
 		local pos = levelData.levelEnd
 		local sig: signal<string> = signal.new()
@@ -514,6 +495,52 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 		end)
 		
 		self.world:addEntity(entity as table)
+	end
+	
+	do -- Intialize player
+		local particles: {love.graphics.ParticleSystem} = {}
+		
+		do -- Particle system 1
+			local ps = love.graphics.newParticleSystem(asset.alpha_image.circle)
+			ps:setParticleLifetime(0.4, 0.5)
+			-- ps:setEmissionRate(10)
+			-- ps:setSpeed(-150, -100)
+			-- ps:setRadialAcceleration(-100, -50)
+			-- ps:setTangentialAcceleration(100, 7000)
+			-- ps:setLinearDamping(0.1)
+			-- ps:setEmissionArea('borderellipse', config.exit.radius * 1, config.exit.radius * 1, 0, true)
+			-- ps:setInsertMode('random')
+			ps:setSizes(
+				config.particle.scaleToUnit * config.player.body.radius * 2,
+				config.particle.scaleToUnit * config.player.body.radius * 2 * 0.5
+			)
+			ps:setColors(
+				color.withAlpha(color.player, 1),
+				color.withAlpha(color.player, 0.25),
+				color.withAlpha(color.player, 0.1),
+				color.withAlpha(color.player, 0)
+			)
+			table.insert(particles, ps)
+		end
+		
+		local pos = levelData.player
+		local entity <total>: typedef.PlayerEntity = {
+			pos = pos.copy,
+			lastPos = pos.copy,
+			aim = vec2(1, 0),
+			drawables = {require 'draw.player', require 'draw.reticle'},
+			particles = particles,
+			velocityEmission = 0.5,
+			mass = config.player.body.mass,
+			heat = 0,
+			input = self.input,
+			opacity = 1,
+			scale = 1,
+			layer = 200,
+		}
+		self.world:addEntity(entity as table)
+		self.camera = cam11(pos.x, pos.y, 1, 0, 0, 0, gw, gh)
+		self.player = entity
 	end
 	
 	do -- Fade in tween
