@@ -76,6 +76,14 @@ else
 	log.level = 'fatal'
 end
 
+global record Stats
+	runTimes: {string:number}
+	currentTotal: number
+	bestTimes: {string:number}
+	bestTotal: number
+end
+global stats: Stats
+
 global baton = require 'baton'
 global vec2 = require 'brinevector'
 global config = require 'config'

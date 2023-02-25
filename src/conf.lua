@@ -2,6 +2,7 @@ require 'love.joystick'
 require 'global'
 
 function love.conf(t)
+	t.identity = 'il-love-jam-2023'
 	t.window.title = 'love jam 2023'
 	
 	t.window.vsync = 0

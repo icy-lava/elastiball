@@ -26,6 +26,17 @@ function Game.new(): Game
 	return setmetatable({}, Game)
 end
 
+function Game:getLevelTime(): number
+	return util.ticksToSecs(self.ticks)
+end
+
+function Game:getLevelTimeString(): string
+	local time = self:getLevelTime()
+	local seconds = time % 60
+	local minutes = math.floor(time / 60)
+	return string.format('%d:%04.1f', minutes, seconds)
+end
+
 function Game:gotoLevel(name: string)
 	scene:enter(Game.new(), name)
 end
@@ -34,11 +45,13 @@ function Game:resetLevel()
 	if self.levelName == 'live' then
 		scene:enter(Game.new(), self.levelData)
 	else
+		stats.currentTotal = stats.currentTotal + self:getLevelTime()
 		self:gotoLevel(self.levelName)
 	end
 end
 
 function Game:endGame()
+	stats.bestTotal = math.min(stats.bestTotal, stats.currentTotal)
 	gotoMenu()
 	love.mouse.setRelativeMode(false)
 end
@@ -47,6 +60,8 @@ function Game:nextLevel()
 	if self.levelName == 'live' then
 		scene:pop()
 	elseif self.levelName == 'menu' then
+		stats.currentTotal = 0
+		stats.runTimes = {}
 		self:gotoLevel('1')
 		love.mouse.setRelativeMode(true)
 	else
@@ -89,6 +104,14 @@ end
 
 function Game:onLevelEnd()
 	self.levelEnd = true
+	
+	if self.levelName ~= 'menu' then
+		local time = util.ticksToSecs(self.ticks)
+		stats.runTimes[self.levelName] = time
+		stats.currentTotal = stats.currentTotal + time
+		stats.bestTimes[self.levelName] = math.min(time, stats.bestTimes[self.levelName] or math.huge)
+	end
+	
 	do -- Opacity tween
 		self.player.opacity = self.player.opacity or 1
 		self.player.scale = self.player.scale or 1
@@ -132,17 +155,6 @@ function Game:onLevelEnd()
 	end
 	
 	self:immobilizePlayer()
-end
-
-function Game:getLevelTime(): number
-	return self.ticks / FPS
-end
-
-function Game:getLevelTimeString(): string
-	local time = self:getLevelTime()
-	local seconds = time % 60
-	local minutes = math.floor(time / 60)
-	return string.format('%d:%04.1f', minutes, seconds)
 end
 
 function Game:update(dt: number)
@@ -214,7 +226,7 @@ function Game:draw()
 	
 	if self.levelName ~= 'menu' then
 		love.graphics.setColor(1, 1, 1, 1)
-		love.graphics.printf(self:getLevelTimeString(), self.timerFont, 24, 24, 200, 'left')
+		love.graphics.printf(self:getLevelTimeString(), self.timerFont, vpx + 24, vpy + 24, 200, 'left')
 	end
 	
 	-- Solid color overlay
@@ -306,6 +318,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	do -- Load level data
 		if levelInfo is string then
 			self.levelName = levelInfo
+			stats.runTimes[self.levelName] = 0
 			local path = util.levelNameToPath(self.levelName)
 			local levelString = love.filesystem.read(path)
 			levelData = level.decode(levelString)

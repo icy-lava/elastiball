@@ -216,6 +216,14 @@ function util.levelExists(name: string): boolean
 	return not not love.filesystem.getInfo(path, 'file')
 end
 
+function util.ticksToSecs(ticks: integer): number
+	return ticks / FPS
+end
+
+function util.secsToTicks(secs: number): integer
+	return util.round(secs * FPS)
+end
+
 function util.imerge<T>(a: {T}, b: {T}): {T}
 	local result: {T} = {}
 	for i = 1, #a do

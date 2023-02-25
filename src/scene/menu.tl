@@ -3,6 +3,7 @@ local record Menu
 	ui: ui.ButtonSet
 	uiOpacity: number
 	font: love.graphics.Font
+	recordFont: love.graphics.Font
 	flux: flux.Group
 	game: Game
 	__index: Menu
@@ -30,7 +31,18 @@ end
 function Menu:enter()
 	self.ui = ui.ButtonSet.new()
 	self.font = asset.font['Quicksand-SemiBold'](48)
+	self.recordFont = asset.font['Quicksand-SemiBold'](32)
 	self.flux = flux.group()
+	
+	if not stats then
+		local _stats <total>: Stats = {
+			runTimes = {},
+			currentTotal = 0,
+			bestTimes = {},
+			bestTotal = math.huge,
+		}
+		stats = _stats
+	end
 	
 	self.uiOpacity = 0
 	self.flux:to(self, 1, {uiOpacity = 1})
@@ -131,6 +143,16 @@ function Menu:draw()
 	self.game:draw()
 	love.graphics.setColor(1, 1, 1, self.uiOpacity)
 	self.ui:draw()
+	
+	if stats.currentTotal > 0 then
+		local seconds = stats.currentTotal % 60
+		local minutes = math.floor(stats.currentTotal / 60)
+		local secondsBest = stats.bestTotal % 60
+		local minutesBest = math.floor(stats.bestTotal / 60)
+		local text = string.format('Time taken: %d:%05.2f\nBest time: %d:%05.2f', minutes, seconds, minutesBest, secondsBest)
+		love.graphics.setColor(1, 1, 1, self.uiOpacity)
+		love.graphics.printf(text, self.recordFont, 24, 24, 600, 'left')
+	end
 end
 
 function Menu:update(dt: number)
