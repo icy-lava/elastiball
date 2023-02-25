@@ -76,7 +76,7 @@ function EditorModal.new(): EditorModal
 	return setmetatable({}, EditorModal)
 end
 
-local modes: {Editor.Mode} = {'select', 'move', 'point', 'pin', 'link', 'player', 'end', 'safezone', 'polygon'}
+local modes: {Editor.Mode} = {'select', 'move', 'point', 'link', 'polygon', 'pin', 'safezone', 'player', 'end'}
 local modeIndices: {Editor.Mode:integer} = {}
 for i, mode in ipairs(modes) do
 	modeIndices[mode] = i
@@ -126,6 +126,9 @@ function Editor:selectAll()
 		self.selected[uid] = true
 	end
 	for uid in pairs(self.data.safezones) do
+		self.selected[uid] = true
+	end
+	for uid in pairs(self.data.solids) do
 		self.selected[uid] = true
 	end
 end
@@ -201,6 +204,32 @@ function Editor:newUID(): string
 	return tostring(self.data.lastUID)
 end
 
+function Editor:endPolygon()
+	if self.polygon then
+		local pcount = #self.polygon.points
+		if pcount >= 3 then
+			local uid = self:newUID()
+			local solid <total>: level.Data.Solid = {
+				uid = uid,
+				points = self.polygon.points,
+			}
+			self.data.solids[uid] = solid
+		else
+			log.warn(string.format('tried to end polygon with %s points', pcount))
+		end
+	else
+		log.warn 'tried to end polygon, but there was no polygon being made'
+	end
+	self.polygon = nil
+end
+
+function Editor:setMode(mode: Editor.Mode)
+	self.mode = mode
+	if self.polygon then
+		self:endPolygon()
+	end
+end
+
 function Editor:doSave(filename: string)
 	if filename and filename ~= '' then
 		local data = level.encode(self.data)
@@ -256,7 +285,7 @@ function Editor:enter()
 		solids    = {},
 		player    = vec2(0, 0),
 		lastUID   = 0,
-		levelEnd  = vec2(100, 0),
+		levelEnd  = vec2(800, 0),
 		
 		-- Yikes
 		UID      = nil,
@@ -272,7 +301,7 @@ function Editor:enter()
 	
 	local defaultSafezone <total>: level.Data.Safezone = {
 		uid = nil,
-		radius = 500,
+		radius = (data.player - data.levelEnd).length / 2 + 100,
 		pos = (data.player + data.levelEnd) / 2,
 	}
 	self:addSafezone(defaultSafezone)
@@ -288,25 +317,6 @@ function Editor:wheelmoved(_: number, dy: number)
 	local newPos = vec2(self.camera:toWorld(mx, my))
 	local delta = startPos - newPos
 	self.camera:setPos(self.camera:getX() + delta.x, self.camera:getY() + delta.y)
-end
-
-function Editor:endPolygon()
-	if self.polygon then
-		local pcount = #self.polygon.points
-		if pcount >= 3 then
-			local uid = self:newUID()
-			local solid <total>: level.Data.Solid = {
-				uid = uid,
-				points = self.polygon.points,
-			}
-			self.data.solids[uid] = solid
-		else
-			log.warn(string.format('tried to end polygon with %s points', pcount))
-		end
-	else
-		log.warn 'tried to end polygon, but there was no polygon being made'
-	end
-	self.polygon = nil
 end
 
 function Editor:mousepressed(x: integer, y: integer, button: integer)
@@ -539,9 +549,11 @@ function Editor:draw()
 				for _, pos in ipairs(points) do
 					table.insert(coords, pos.x)
 					table.insert(coords, pos.y)
+					love.graphics.circle('fill', pos.x, pos.y, 3)
 				end
 				if love.math.isConvex(coords) then
-					love.graphics.polygon('fill', coords)
+					util.roundedPoly(config.solid.cornerRadius, points)
+					-- love.graphics.polygon('fill', coords)
 				else
 					love.graphics.setColor(self:properColor(uid, color.unsafe))
 					local tris = {coords}
@@ -753,7 +765,7 @@ function Editor:keypressed(key: string)
 	
 	local num: integer = tonumber(key)
 	if num and modes[num] then
-		self.mode = modes[num]
+		self:setMode(modes[num])
 		return
 	end
 	
@@ -800,6 +812,12 @@ function Editor:keypressed(key: string)
 	
 	if key == 'p' then
 		self.camera:setPos(self.data.player.x, self.data.player.y)
+		self.camera:setZoom(1)
+		return
+	end
+	
+	if key == 'e' then
+		self.camera:setPos(self.data.levelEnd.x, self.data.levelEnd.y)
 		self.camera:setZoom(1)
 		return
 	end

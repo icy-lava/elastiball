@@ -13,6 +13,7 @@ local components: RecordDef = {
 	drawables_t = '{love.graphics.Drawable | function(entity: FullEntity)}',
 	layer_t = 'integer',
 	solids_t = '{shapes.Shape}',
+	polygon_t = '{vec2}',
 	target_t = {
 		pos = 'vec2',
 		pinned = 'boolean'
@@ -55,6 +56,7 @@ local systems: {string:string} = {
 	safezone       = 'pos drawables? layer? trigger',
 	link           = 'link drawables? layer?',
 	levelEnd       = 'pos drawables? layer? trigger particles attraction',
+	solid          = 'solids polygon drawables',
 	
 	-- Systems
 	solids         = 'solids',

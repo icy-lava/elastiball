@@ -208,10 +208,10 @@ function Game:draw()
 		util.crect('fill', barCenter.x, barCenter.y, (barWidth - pad * 2 - 6) * heat + 6, 6, 3)
 	end
 	
-	if cli.dev then
-		love.graphics.setColor(1, 1, 1, 1)
-		love.graphics.print(tostring(love.timer.getFPS()))
-	end
+	-- if cli.dev then
+	-- 	love.graphics.setColor(1, 1, 1, 1)
+	-- 	love.graphics.print(tostring(love.timer.getFPS()))
+	-- end
 end
 
 function Game:resize(width: integer, height: integer)
@@ -256,6 +256,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	do -- Initialize systems
 		self.world:addSystem(util.instance(require 'system.point'))
 		self.world:addSystem(util.instance(require 'system.attractor'))
+		self.world:addSystem(util.instance(require 'system.solids'))
 		
 		self.world:addSystem(util.instance(require 'system.input'))
 		self.world:addSystem(util.instance(require 'system.verlet'))
@@ -265,7 +266,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 		self.world:addSystem(util.instance(require 'system.trigger'))
 		
 		self.world:addSystem(util.instance(require 'system.draw_particles'))
-		self.world:addSystem(util.instance(require 'system.draw_solids'))
+		-- self.world:addSystem(util.instance(require 'system.draw_polygon'))
 		self.world:addSystem(util.instance(require 'system.drawable'))
 	end
 	
@@ -342,15 +343,19 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 		end
 	end
 	
-	do -- Initialize polygons
+	do -- Initialize solids
 		for _, solid in pairs(levelData.solids) do
 			local coords: {number} = {}
+			local vecs: {vec2} = {}
 			for _, pos in ipairs(solid.points) do
 				table.insert(coords, pos.x)
 				table.insert(coords, pos.y)
+				table.insert(vecs, pos.copy)
 			end
-			local entity <total>: typedef.SolidsEntity = {
-				solids = {shapes.newPolygonShape(table.unpack(coords))}
+			local entity <total>: typedef.SolidEntity = {
+				solids = {shapes.newPolygonShape(table.unpack(coords))},
+				polygon = vecs,
+				drawables = {require 'draw.solid'},
 			}
 			self.world:addEntity(entity as table)
 		end

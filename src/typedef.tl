@@ -42,6 +42,7 @@ local record FullEntity
 	opacity: comp.Opacity
 	particles: comp.Particles
 	pinned: comp.Pinned
+	polygon: comp.Polygon
 	pos: comp.Pos
 	scale: comp.Scale
 	solids: comp.Solids
@@ -114,6 +115,12 @@ local record SafezoneEntity
 	trigger: comp.Trigger
 end
 
+local record SolidEntity
+	drawables: comp.Drawables
+	polygon: comp.Polygon
+	solids: comp.Solids
+end
+
 local record SolidsEntity
 	solids: comp.Solids
 end
@@ -160,6 +167,7 @@ local record comp
 	type Opacity = number
 	type Particles = {love.graphics.ParticleSystem}
 	type Pinned = boolean
+	type Polygon = {vec2}
 	type Pos = vec2
 	type Scale = number
 	type Solids = {shapes.Shape}
@@ -179,7 +187,7 @@ local entityFilter: {FullEntity:tiny.EntityFilter} = {
 	[AttractorEntity] = tiny.requireAll("attraction", "pos"),
 	[DrawableEntity] = tiny.requireAll("drawables"),
 	[DrawnPlayerEntity] = tiny.requireAll("aim", "heat", "lastPos", "pos"),
-	[FullEntity] = tiny.requireAll("aim", "attraction", "drawables", "heat", "input", "lastPos", "layer", "link", "linkRef", "linked", "mass", "opacity", "particles", "pinned", "pos", "scale", "solids", "target", "trigger"),
+	[FullEntity] = tiny.requireAll("aim", "attraction", "drawables", "heat", "input", "lastPos", "layer", "link", "linkRef", "linked", "mass", "opacity", "particles", "pinned", "polygon", "pos", "scale", "solids", "target", "trigger"),
 	[GravityEntity] = tiny.requireAll("lastPos", "pos"),
 	[InputEntity] = tiny.requireAll("heat", "input", "lastPos", "pos"),
 	[LevelEndEntity] = tiny.requireAll("attraction", "particles", "pos", "trigger"),
@@ -188,6 +196,7 @@ local entityFilter: {FullEntity:tiny.EntityFilter} = {
 	[PlayerEntity] = tiny.requireAll("aim", "heat", "input", "lastPos", "pos"),
 	[PointEntity] = tiny.requireAll("lastPos", "pinned", "pos"),
 	[SafezoneEntity] = tiny.requireAll("pos", "trigger"),
+	[SolidEntity] = tiny.requireAll("drawables", "polygon", "solids"),
 	[SolidsEntity] = tiny.requireAll("solids"),
 	[TriggerEntity] = tiny.requireAll("pos", "trigger"),
 	[VerletEntity] = tiny.requireAll("lastPos", "pos"),
@@ -207,6 +216,7 @@ return {
 	PlayerEntity = PlayerEntity,
 	PointEntity = PointEntity,
 	SafezoneEntity = SafezoneEntity,
+	SolidEntity = SolidEntity,
 	SolidsEntity = SolidsEntity,
 	TriggerEntity = TriggerEntity,
 	VerletEntity = VerletEntity,

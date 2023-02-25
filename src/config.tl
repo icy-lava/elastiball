@@ -19,6 +19,9 @@ return {
 			mass = 5,
 		},
 	},
+	solid = {
+		cornerRadius = 16,
+	},
 	point = {
 		radius = 20,
 		pinRadius = 10,

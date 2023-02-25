@@ -14,9 +14,78 @@ function util.round(num: number): integer
 	return math.floor(num + 0.5)
 end
 
+function util.perpendicular(vec: vec2): vec2
+	return vec2(-vec.y, vec.x)
+end
+
+function util.cross(a: vec2, b: vec2): number
+	return a.x * b.y - a.y * b.x
+end
+
 -- https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/reflect.xhtml
 function util.reflect(vec: vec2, normal: vec2): vec2
 	return vec - (2 * (vec * normal)) * normal
+end
+
+-- https://stackoverflow.com/a/51781408
+function util.lineIntersect(p1: vec2, p2: vec2, p3: vec2, p4: vec2): vec2
+	
+	local detL1 = util.cross(p1, p2)
+	local detL2 = util.cross(p3, p4)
+	
+	local delta1 = p1 - p2
+	local delta2 = p3 - p4
+	
+	local xnom = util.cross(vec2(detL1, delta1.x), vec2(detL2, delta2.x))
+	local ynom = util.cross(vec2(detL1, delta1.y), vec2(detL2, delta2.y))
+	local denom = util.cross(delta1, delta2)
+	
+	if denom == 0 then
+		return nil
+	end
+	
+	return vec2(xnom / denom, ynom / denom)
+end
+
+function util.circleCorner(radius: number, v1: vec2, v2: vec2, v3: vec2): {vec2}
+	local d1, d2 = v2 - v1, v3 - v2
+	radius = math.min(radius, d1.length / 2, d2.length / 2)
+	local n1, n2 = d1.normalized, d2.normalized
+	local p1, p2 = util.perpendicular(n1) * radius, util.perpendicular(n2) * radius
+	local dot = p1:dot(n2)
+	if math.abs(dot) < 0.001 then return {v2} end
+	if dot < 0 then
+		p1 = -p1
+		p2 = -p2
+	end
+	
+	local c = util.lineIntersect(v1 + p1, v2 + p1, v2 + p2, v3 + p2)
+	if not c then return {v2} end
+	
+	local c1, c2 = c - p1, c - p2
+	
+	local pcount = math.max(2, util.round((c2 - c1).length / 2))
+	local points: {vec2} = {}
+	for i = 0, pcount - 1 do
+		local lerp = i / (pcount - 1)
+		local p = util.lerp(lerp, p1, p2)
+		p.length = radius
+		points[i + 1] = c - p
+	end
+	return points
+end
+
+function util.roundedPoly(radius: number, points: {vec2})
+	local coords: {number} = {}
+	local pcount = #points
+	for i = 0, pcount - 1 do
+		local p1, p2, p3 = points[i + 1], points[(i + 1) % pcount + 1], points[(i + 2) % pcount + 1]
+		for _, p in ipairs(util.circleCorner(radius, p1, p2, p3)) do
+			table.insert(coords, p.x)
+			table.insert(coords, p.y)
+		end
+	end
+	love.graphics.polygon('fill', coords)
 end
 
 function util.crect(mode: love.graphics.DrawMode, x: number, y: number, width: number, height: number, round: number)

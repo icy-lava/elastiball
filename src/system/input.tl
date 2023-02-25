@@ -29,6 +29,7 @@ function system:process(entity: typedef.InputEntity, dt: number)
 			local target: entity.target
 			if entity.aim.length >= 0.3 then
 				local naim = entity.aim.normalized
+				local minLength = entity.aim.length * config.reticle.distance
 				local err = 1 / 0
 				
 				local entities = util.findSystemInstance(self.world.systems, pointSystem).entities
@@ -41,6 +42,9 @@ function system:process(entity: typedef.InputEntity, dt: number)
 							local pass = delta.length / dot
 							if pass < 300 then
 								local newErr = delta.length / dot ^ 5
+								if delta.length < minLength then
+									newErr = newErr * 2
+								end
 								if newErr < err then
 									target = t
 									err = newErr
