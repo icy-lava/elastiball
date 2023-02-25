@@ -7,8 +7,8 @@ return {
 		distance = 100
 	},
 	button = {
-		size = vec2(280, 80),
-		radius = 24,
+		size = vec2(280, 72),
+		radius = 12,
 		spacing = 24,
 		pad = 48,
 	},
@@ -41,16 +41,16 @@ return {
 	},
 	input = baton.new {
 		controls = {
-			moveLeft  = {'key:left', 'key:a', 'axis:leftx-', 'button:dpleft'},
-			moveRight = {'key:right', 'key:d', 'axis:leftx+', 'button:dpright'},
-			moveUp    = {'key:up', 'key:w', 'axis:lefty-', 'button:dpup'},
-			moveDown  = {'key:down', 'key:s', 'axis:lefty+', 'button:dpdown'},
+			moveLeft  = {'key:left', 'sc:a', 'axis:leftx-', 'button:dpleft'},
+			moveRight = {'key:right', 'sc:d', 'axis:leftx+', 'button:dpright'},
+			moveUp    = {'key:up', 'sc:w', 'axis:lefty-', 'button:dpup'},
+			moveDown  = {'key:down', 'sc:s', 'axis:lefty+', 'button:dpdown'},
 			aimLeft   = {'axis:rightx-'},
 			aimRight  = {'axis:rightx+'},
 			aimUp     = {'axis:righty-'},
 			aimDown   = {'axis:righty+'},
 			grab      = {'key:space', 'mouse:1', 'button:a', 'button:rightshoulder', 'axis:triggerright+'},
-			boost     = {'key:lctrl', 'mouse:2', 'button:b', 'button:leftshoulder', 'axis:triggerleft+'},
+			boost     = {},
 		},
 		pairs = {
 			move = {'moveLeft', 'moveRight', 'moveUp', 'moveDown'},

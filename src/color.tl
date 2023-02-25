@@ -23,8 +23,8 @@ local color = {
 	black: RGB = {0, 0, 0},
 	selected: RGB = {vivid.LCHtoRGB(70, 90, 240)},
 	hovered: RGB = {vivid.LCHtoRGB(95, 30, 240)},
-	buttonBack: RGB = {vivid.LCHtoRGB(70, 50, 290)},
-	buttonFore: RGB = {vivid.LCHtoRGB(30, 10, 290)},
+	buttonBack: RGB = {vivid.LCHtoRGB(50, 60, 350)},
+	buttonFore: RGB = {vivid.LCHtoRGB(30, 20, 350)},
 }
 
 function color.withAlpha(col: {number}, alpha: number): {number, number, number, number}

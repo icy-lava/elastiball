@@ -9,8 +9,8 @@ function love.conf(t)
 	t.window.width = cli.width
 	t.window.height = cli.height
 	t.window.resizable = true
-	t.window.minwidth = 160
-	t.window.minheight = 120
+	t.window.minwidth = 640
+	t.window.minheight = 480
 	t.window.msaa = 8
 	
 	t.modules.audio = true

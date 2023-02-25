@@ -15,6 +15,8 @@ local record Game
 	levelEnd: boolean
 	safety: Safety
 	fadeColor: color.RGBA
+	ticks: integer
+	timerFont: love.graphics.Font
 	
 	__index: Game
 end
@@ -132,7 +134,21 @@ function Game:onLevelEnd()
 	self:immobilizePlayer()
 end
 
+function Game:getLevelTime(): number
+	return self.ticks / FPS
+end
+
+function Game:getLevelTimeString(): string
+	local time = self:getLevelTime()
+	local seconds = time % 60
+	local minutes = math.floor(time / 60)
+	return string.format('%d:%04.1f', minutes, seconds)
+end
+
 function Game:update(dt: number)
+	if not (self.levelEnd or self.safety == 'dying') then
+		self.ticks = self.ticks + 1
+	end
 	self.input:update()
 	config.inputDummy:update()
 	self.flux:update(dt)
@@ -194,9 +210,15 @@ function Game:draw()
 	self.camera:detach()
 	self.camera:setZoom(prevZoom)
 	
+	local vpx, vpy, vpw, vph = self.camera:getViewport()
+	
+	if self.levelName ~= 'menu' then
+		love.graphics.setColor(1, 1, 1, 1)
+		love.graphics.printf(self:getLevelTimeString(), self.timerFont, 24, 24, 200, 'left')
+	end
+	
 	-- Solid color overlay
 	if self.fadeColor and self.fadeColor[4] > 0 then
-		local vpx, vpy, vpw, vph = self.camera:getViewport()
 		love.graphics.setColor(self.fadeColor)
 		love.graphics.rectangle('fill', vpx, vpy, vpw, vph)
 	end
@@ -260,6 +282,8 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	self.input = config.input
 	self.safety = 'safe'
 	self.cameraZoom = 1
+	self.ticks = 0
+	self.timerFont = asset.font['Quicksand-SemiBold'](32)
 	
 	do -- Initialize systems
 		self.world:addSystem(util.instance(require 'system.point'))

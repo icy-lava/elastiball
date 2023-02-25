@@ -29,7 +29,7 @@ end
 
 function Menu:enter()
 	self.ui = ui.ButtonSet.new()
-	self.font = asset.font['Baloo2-Bold'](48)
+	self.font = asset.font['Quicksand-SemiBold'](48)
 	self.flux = flux.group()
 	
 	self.uiOpacity = 0
@@ -68,6 +68,21 @@ function Menu:enter()
 			menu.game:onLevelEnd()
 		end
 		self.ui:add(start)
+	end
+	
+	do -- Levels button
+		local levels = ui.Button.new()
+		levels.size = config.button.size.copy
+		levels.font = self.font
+		levels.text = 'Levels'
+		levels.color = color.buttonBack
+		levels.textColor = color.buttonFore
+		levels.cornerRadius = config.button.radius
+		
+		function levels:action()
+			
+		end
+		self.ui:add(levels)
 	end
 	
 	do -- Settings button

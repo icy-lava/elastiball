@@ -275,7 +275,7 @@ function Editor:enter()
 	self.camera = cam11(0, 0, 1, 0, 0, 0)
 	self.mode = modes[1]
 	self.font = love.graphics.newFont(16)
-	self.bigFont = asset.font['Baloo2-Medium'](48)
+	self.bigFont = asset.font['Quicksand-SemiBold'](48)
 	self.font:setLineHeight(1.25)
 	
 	local data <total>: level.Data = {
