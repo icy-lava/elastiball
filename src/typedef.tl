@@ -31,6 +31,7 @@ local record FullEntity
 	aim: comp.Aim
 	attraction: comp.Attraction
 	drawables: comp.Drawables
+	grabable: comp.Grabable
 	heat: comp.Heat
 	input: comp.Input
 	lastPos: comp.LastPos
@@ -107,6 +108,7 @@ end
 
 local record PointEntity
 	drawables: comp.Drawables
+	grabable: comp.Grabable
 	lastPos: comp.LastPos
 	layer: comp.Layer
 	pinned: comp.Pinned
@@ -149,6 +151,7 @@ local record comp
 		force: number
 	end
 	type Drawables = {love.graphics.Drawable | function(entity: FullEntity)}
+	type Grabable = boolean
 	type Heat = number
 	type Input = baton.Player
 	type LastPos = vec2
@@ -193,7 +196,7 @@ local entityFilter: {FullEntity:tiny.EntityFilter} = {
 	[AttractorEntity] = tiny.requireAll("attraction", "pos"),
 	[DrawableEntity] = tiny.requireAll("drawables"),
 	[DrawnPlayerEntity] = tiny.requireAll("aim", "heat", "lastPos", "pos"),
-	[FullEntity] = tiny.requireAll("aim", "attraction", "drawables", "heat", "input", "lastPos", "layer", "link", "linkRef", "linked", "mass", "opacity", "particles", "pinned", "polygon", "pos", "scale", "solids", "target", "trigger", "velocityEmission"),
+	[FullEntity] = tiny.requireAll("aim", "attraction", "drawables", "grabable", "heat", "input", "lastPos", "layer", "link", "linkRef", "linked", "mass", "opacity", "particles", "pinned", "polygon", "pos", "scale", "solids", "target", "trigger", "velocityEmission"),
 	[GravityEntity] = tiny.requireAll("lastPos", "pos"),
 	[InputEntity] = tiny.requireAll("heat", "input", "lastPos", "pos"),
 	[LevelEndEntity] = tiny.requireAll("attraction", "particles", "pos", "trigger"),

@@ -16,6 +16,7 @@ local color = {
 	exit: RGB = hex '#222222',
 	background: RGB = hex '#6d273d',
 	point: RGB = hex '#408d9d',
+	ungrabable: RGB = {vivid.LCHtoRGB(40, 70, 0)},
 	link: RGB = hex '#465b63',
 	solid: RGB = {vivid.LCHtoRGB(10, 10, 10)},
 	safe: RGB = {vivid.LCHtoRGB(20, 30, 240)},
@@ -53,11 +54,11 @@ function color.labLerp(t: number, a: {number}, b: {number}): {number}
 end
 
 function color.asSelected(col: {number}): {number}
-	return color.labLerp(0.5, col, color.selected)
+	return color.labLerp(0.25, col, color.selected)
 end
 
 function color.asHovered(col: {number}): {number}
-	return color.labLerp(0.5, col, color.hovered)
+	return color.labLerp(0.25, col, color.hovered)
 end
 
 function color.contextual(col: {number}, hovered: boolean, selected: boolean): {number}

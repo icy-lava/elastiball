@@ -10,6 +10,7 @@ local record level
 		record Point
 			uid: UID
 			pos: vec2
+			grabable: boolean
 			pinned: boolean
 		end
 		
@@ -63,6 +64,12 @@ function level.decode(str: string): level.Data
 	data.levelEnd = data.levelEnd or vec2()
 	data.safezones = data.safezones or {}
 	data.solids = data.solids or {}
+	
+	-- Introduce grabable to old levels
+	for _, point in pairs(data.points) do
+		point.grabable = point.grabable ~= false
+	end
+	
 	return data
 end
 

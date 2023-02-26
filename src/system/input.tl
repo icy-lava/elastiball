@@ -34,8 +34,8 @@ function system:process(entity: typedef.InputEntity, dt: number)
 				
 				local entities = util.findSystemInstance(self.world.systems, pointSystem).entities
 				for _, e in ipairs(entities) do
-					local t = e as entity.target
-					if not t.pinned then
+					if e.grabable ~= false then
+						local t = e as entity.target
 						local delta = t.pos - entity.pos
 						local dot = delta.normalized:dot(naim)
 						if dot > 0.1 then
@@ -61,13 +61,17 @@ function system:process(entity: typedef.InputEntity, dt: number)
 	
 	if entity.input:down 'grab' then
 		if not entity.linkRef and entity.target then
+			local strength = 0.02
+			if entity.target.pinned then
+				strength = strength * 0.2
+			end
 			local link <total>: typedef.comp.Link = {
 				-- FIXME: need a more robust way to convert entities here
 				a = entity as typedef.comp.Linked,
 				b = entity.target as typedef.comp.Linked,
 				distance = 50,--(entity.pos - entity.target.pos).length,
 				strengthIn = 0,
-				strengthOut = 0.02,
+				strengthOut = strength,
 				error = 0,
 			}
 			

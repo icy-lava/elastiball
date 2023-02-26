@@ -6,6 +6,7 @@ local components: RecordDef = {
 	heat_t = 'number',
 	opacity_t = 'number',
 	scale_t = 'number',
+	grabable_t = 'boolean',
 	pinned_t = 'boolean',
 	aim_t = 'vec2',
 	input_t = 'baton.Player',
@@ -53,7 +54,7 @@ local systems: {string:string} = {
 	
 	-- Entity types
 	player         = 'pos particles? velocityEmission? drawables? layer? lastPos aim heat input mass? opacity? scale?',
-	point          = 'pos drawables? layer? lastPos pinned',
+	point          = 'pos lastPos drawables? layer? grabable? pinned',
 	safezone       = 'pos drawables? layer? trigger',
 	link           = 'link drawables? layer?',
 	levelEnd       = 'pos drawables? layer? trigger particles attraction',

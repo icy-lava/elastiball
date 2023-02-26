@@ -335,6 +335,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 			local entity <total>: typedef.PointEntity = {
 				pos = point.pos.copy,
 				lastPos = point.pos.copy,
+				grabable = point.grabable,
 				pinned = point.pinned,
 				drawables = {require 'draw.point'},
 				layer = 100,

@@ -36,7 +36,7 @@ local record Editor
 	selected: {Data.UID:boolean}
 	
 	enum Mode
-		'select' 'move' 'point' 'pin' 'link' 'player' 'end' 'safezone' 'polygon'
+		'select' 'move' 'point' 'link' 'polygon' 'pin' 'grabable' 'safezone' 'player' 'end'
 	end
 	mode: Mode
 	
@@ -76,7 +76,7 @@ function EditorModal.new(): EditorModal
 	return setmetatable({}, EditorModal)
 end
 
-local modes: {Editor.Mode} = {'select', 'move', 'point', 'link', 'polygon', 'pin', 'safezone', 'player', 'end'}
+local modes: {Editor.Mode} = {'select', 'move', 'point', 'link', 'polygon', 'pin', 'grabable', 'safezone', 'player', [0] = 'end'}
 local modeIndices: {Editor.Mode:integer} = {}
 for i, mode in ipairs(modes) do
 	modeIndices[mode] = i
@@ -355,8 +355,18 @@ function Editor:mousepressed(x: integer, y: integer, button: integer)
 			self.data.points[uid] = {
 				uid = uid,
 				pos = wpos.copy,
+				grabable = true,
 				pinned = false,
 			}
+			self:deselectAll()
+			return
+		end
+		
+		if self.mode == 'grabable' then
+			local point = self:getHoveredPoint()
+			if point then
+				point.grabable = point.grabable == false
+			end
 			self:deselectAll()
 			return
 		end
@@ -599,7 +609,8 @@ function Editor:draw()
 	do -- Draw points
 		love.graphics.setLineWidth(config.point.lineWidth)
 		for uid, point in pairs(self.data.points) do
-			love.graphics.setColor(self:properColor(uid, color.point))
+			local col = point.grabable and color.point or color.ungrabable
+			love.graphics.setColor(self:properColor(uid, col))
 			
 			love.graphics.circle('line', point.pos.x, point.pos.y, config.point.radius)
 			if point.pinned then
@@ -677,7 +688,8 @@ function Editor:draw()
 	
 	do -- Draw mode info
 		local textArray: {table|string} = {}
-		for i, mode in ipairs(modes) do
+		for i = 0, 9 do
+			local mode = modes[i]
 			local col: color.RGBA = {vivid.LCHtoRGB(10, 20, 10, 0.8)}
 			if self.mode == mode then
 				col = {vivid.LCHtoRGB(70, 50, 240, 0.9)}
