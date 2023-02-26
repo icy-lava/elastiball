@@ -39,26 +39,7 @@ return {
 	mouse = {
 		baseSensitivity = 0.01
 	},
-	input = baton.new {
-		controls = {
-			moveLeft  = {'key:left', 'sc:a', 'axis:leftx-', 'button:dpleft'},
-			moveRight = {'key:right', 'sc:d', 'axis:leftx+', 'button:dpright'},
-			moveUp    = {'key:up', 'sc:w', 'axis:lefty-', 'button:dpup'},
-			moveDown  = {'key:down', 'sc:s', 'axis:lefty+', 'button:dpdown'},
-			aimLeft   = {'axis:rightx-'},
-			aimRight  = {'axis:rightx+'},
-			aimUp     = {'axis:righty-'},
-			aimDown   = {'axis:righty+'},
-			grab      = {'key:space', 'mouse:1', 'button:a', 'button:rightshoulder', 'axis:triggerright+'},
-			boost     = {},
-		},
-		pairs = {
-			move = {'moveLeft', 'moveRight', 'moveUp', 'moveDown'},
-			aim =  {'aimLeft', 'aimRight', 'aimUp', 'aimDown'},
-		},
-		deadzone = 0.2,
-		joystick = love.joystick.getJoysticks()[1],
-	},
+	input = baton.new {controls = {},},
 	inputDummy = baton.new {
 		controls = {
 			moveLeft  = {},

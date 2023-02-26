@@ -1,3 +1,6 @@
+local system = (require as function) 'love.system' as love.system
+global WEB = system.getOS() == 'Web'
+
 global argparse = require 'argparse'
 local parser = argparse()
 

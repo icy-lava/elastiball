@@ -10,8 +10,11 @@ return function(entity: typedef.FullEntity)
 	-- Target indicator
 	if entity.target then
 		local tpos = entity.target.pos
-		love.graphics.setColor(color.withAlpha(color.player, opacity * 0.5))
-		love.graphics.setLineWidth(3)
-		love.graphics.circle('line', tpos.x, tpos.y, 32 --[[ * scale]], 32)
+		love.graphics.setColor(color.withAlpha(color.target, opacity * 0.75))
+		love.graphics.setLineWidth(5)
+		love.graphics.circle('line', tpos.x, tpos.y, 36 --[[ * scale]], 32)
+		local scale = config.particle.scaleToUnit * 64 * 2
+		love.graphics.setColor(color.withAlpha(color.target, opacity * 0.5))
+		util.drawCentered(asset.alpha_image.faded as love.graphics.Drawable, tpos.x, tpos.y, 0, scale, scale)
 	end
 end

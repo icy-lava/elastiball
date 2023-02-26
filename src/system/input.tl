@@ -7,9 +7,9 @@ function system:process(entity: typedef.InputEntity, dt: number)
 	entity.pos = entity.pos + move
 	
 	if entity.aim then
-		-- if util.mouseRel.length >= 5 then
-		-- 	entity.input._activeDevice = 'kbm'
-		-- end
+		if util.mouseRel.length >= 5 then
+			entity.input._activeDevice = 'kbm'
+		end
 		if entity.input:getActiveDevice() == 'joy' then
 			entity.aim = vec2(entity.input:get('aim'))
 		else

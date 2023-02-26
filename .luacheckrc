@@ -24,4 +24,5 @@ globals = {
 	'HEIGHT',
 	'FPS',
 	'FRAME_TIME',
+	'WEB',
 }

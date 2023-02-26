@@ -6,6 +6,8 @@ local record Game
 	flux: flux.Group
 	world: tiny.World
 	input: baton.Player
+	hadInput: boolean
+	inputHelpOpacity: number
 	
 	player: typedef.PlayerEntity
 	
@@ -158,17 +160,29 @@ function Game:onLevelEnd()
 end
 
 function Game:update(dt: number)
-	if not (self.levelEnd or self.safety == 'dying') then
+	if not (self.levelEnd or self.safety == 'dying' or not self.hadInput) then
 		self.ticks = self.ticks + 1
 	end
 	self.input:update()
 	config.inputDummy:update()
 	self.flux:update(dt)
 	
+	if not self.hadInput and (self.input:down 'grab' or self.input:down 'move') then
+		self.hadInput = true
+		self.flux:to(self, self.inputHelpOpacity * 0.25, {inputHelpOpacity = 0})
+			:ease 'quadout'
+	end
+	
 	if self.safety ~= 'dying' then
 		self.safety = 'unsafe'
 	end
 	self.world:update(dt, function(_: tiny.World, system: tiny.System<any>): boolean
+		if not self.hadInput and (
+			system.filter == require 'system.gravity'.filter or
+			system.filter == require 'system.verlet'.filter
+		) then
+			return false
+		end
 		return not (system as table).draw
 	end)
 	if not self.levelEnd and self.safety == 'unsafe' then
@@ -218,6 +232,20 @@ function Game:draw()
 	self.world:update(0, function(_: tiny.World, system: tiny.System<any>): boolean
 		return not not (system as table).draw
 	end)
+	
+	if self.inputHelpOpacity > 0 then
+		love.graphics.setColor(1, 1, 1, self.inputHelpOpacity * 0.5)
+		local pos = self.player.pos
+		local scale = 0.5
+		do
+			local img = asset.alpha_image.controller as love.graphics.Drawable
+			util.drawCentered(img, pos.x, pos.y - 100, 0, scale, scale)
+		end
+		do
+			local img = asset.alpha_image.keyboard_mouse as love.graphics.Drawable
+			util.drawCentered(img, pos.x, pos.y + 100, 0, scale, scale)
+		end
+	end
 	
 	self.camera:detach()
 	self.camera:setZoom(prevZoom)
@@ -289,11 +317,13 @@ end
 function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	local gw, gh = love.graphics.getDimensions() as (integer, integer)
 	
+	util.resetBaton()
 	self.flux = flux.group()
 	self.world = tiny.world()
 	self.input = config.input
 	self.safety = 'safe'
 	self.cameraZoom = 1
+	self.inputHelpOpacity = 0
 	self.ticks = 0
 	self.timerFont = asset.font['Quicksand-SemiBold'](32)
 	
@@ -547,10 +577,16 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	do -- Fade in tween
 		local tween = {value = 1}
 		self.fadeColor = color.withAlpha(color.black, 1)
-		self.flux:to(tween, 0.5, {value = 0})
+		self.flux:to(tween, 1.5, {value = 0})
 			:ease 'quadinout'
 			:onupdate(function()
 				self.fadeColor = color.withAlpha(color.black, tween.value)
+			end)
+			:oncomplete(function()
+				if self.levelName == '1' and not self.hadInput then
+					self.flux:to(self, 1.5, {inputHelpOpacity = 1})
+						:ease 'quadinout'
+				end
 			end)
 	end
 	

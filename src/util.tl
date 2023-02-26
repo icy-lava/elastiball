@@ -95,6 +95,41 @@ function util.crect(mode: love.graphics.DrawMode, x: number, y: number, width: n
 	love.graphics.rectangle(mode, x1, y1, x2 - x1, y2 - y1, round)
 end
 
+function util.drawCentered(drawable: love.graphics.Drawable, x: number, y: number, rot: number, scaleX: number, scaleY: number)
+	local ox, oy = 0.0, 0.0
+	if (drawable as love.Object):typeOf('Texture') then
+		local texture = drawable as love.graphics.Texture
+		ox, oy = texture:getDimensions()
+		ox, oy = ox / 2, oy / 2
+	end
+	love.graphics.draw(drawable, x, y, rot, scaleX, scaleY, ox, oy)
+end
+
+function util.resetBaton()
+	local prev = config.input
+	config.input = baton.new {
+		controls = {
+			moveLeft  = {'key:left', 'sc:a', 'axis:leftx-', 'button:dpleft'},
+			moveRight = {'key:right', 'sc:d', 'axis:leftx+', 'button:dpright'},
+			moveUp    = {'key:up', 'sc:w', 'axis:lefty-', 'button:dpup'},
+			moveDown  = {'key:down', 'sc:s', 'axis:lefty+', 'button:dpdown'},
+			aimLeft   = {'axis:rightx-'},
+			aimRight  = {'axis:rightx+'},
+			aimUp     = {'axis:righty-'},
+			aimDown   = {'axis:righty+'},
+			grab      = {'mouse:1', 'button:a', 'button:rightshoulder', 'axis:triggerright+'},
+			boost     = {},
+		},
+		pairs = {
+			move = {'moveLeft', 'moveRight', 'moveUp', 'moveDown'},
+			aim =  {'aimLeft', 'aimRight', 'aimUp', 'aimDown'},
+		},
+		deadzone = 0.2,
+		joystick = love.joystick.getJoysticks()[1],
+	}
+	config.input._activeDevice = prev._activeDevice
+end
+
 function util.system<T>(entity: T): tiny.System<T>
 	local filt = typedef.filter[entity as nil]
 	if not filt then

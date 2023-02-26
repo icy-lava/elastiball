@@ -18,13 +18,7 @@ function system:process(entity: typedef.DrawableEntity, _: number)
 		if drawable is function(typedef.FullEntity) then
 			drawable(entity as typedef.FullEntity)
 		else
-			local ox, oy = 0.0, 0.0
-			if (drawable as love.Object):typeOf('Texture') then
-				local texture = drawable as love.graphics.Texture
-				ox, oy = texture:getDimensions()
-				ox, oy = ox / 2, oy / 2
-			end
-			love.graphics.draw(drawable, pos.x, pos.y, 0, scale, scale, ox, oy)
+			util.drawCentered(drawable, pos.x, pos.y, 0, scale, scale)
 		end
 	end
 end

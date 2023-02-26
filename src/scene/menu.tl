@@ -51,6 +51,7 @@ function Menu:enter()
 	
 	self.game = require 'scene.game'.new()
 	self.game:enter(nil, 'menu')
+	self.game.hadInput = true
 	
 	local particles = util.findSystemInstance(self.game.world.systems, require 'system.update_particles')
 	for _ = 1, 240 do
@@ -112,7 +113,7 @@ function Menu:enter()
 		self.ui:add(settings)
 	end
 	
-	if love.system.getOS() ~= 'Web' then -- Exit button
+	if not WEB then -- Exit button
 		local exit = ui.Button.new()
 		exit.size = config.button.size.copy
 		exit.font = self.font

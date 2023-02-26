@@ -1,3 +1,7 @@
+if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
+	require("lldebugger").start()
+end
+
 require 'love.joystick'
 require 'global'
 
@@ -12,7 +16,7 @@ function love.conf(t)
 	t.window.resizable = true
 	t.window.minwidth = 640
 	t.window.minheight = 480
-	t.window.msaa = 8
+	t.window.msaa = WEB and 4 or 8
 	
 	t.modules.audio = true
     t.modules.data = true
@@ -35,6 +39,7 @@ function love.conf(t)
 end
 
 function love.load()
+	util.resetBaton()
 	cargo = require 'cargo'
 	asset = {
 		level = cargo.init {
@@ -57,6 +62,7 @@ function love.load()
 			}
 		},
 	}
+	asset.alpha_image()
 	function gotoMenu()
 		scene:enter(require 'scene.menu'.new())
 	end
