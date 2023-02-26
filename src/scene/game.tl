@@ -607,7 +607,11 @@ function Game:keypressed(key: string)
 		end
 		if key == 'escape' and self.levelName == 'live' then
 			scene:pop()
+			return
 		end
+	end
+	if key == 'escape' then
+		pushPause()
 	end
 end
 

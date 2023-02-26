@@ -130,6 +130,10 @@ function util.resetBaton()
 	config.input._activeDevice = prev._activeDevice
 end
 
+function util.getLevelCount(): integer
+	return 10
+end
+
 function util.system<T>(entity: T): tiny.System<T>
 	local filt = typedef.filter[entity as nil]
 	if not filt then

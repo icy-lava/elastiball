@@ -60,14 +60,20 @@ function Menu:enter()
 	
 	local menu = self
 	
+	local function button(text: string): ui.Button
+		local option = ui.Button.new()
+		option.size = config.button.size.copy
+		option.font = self.font
+		option.text = text
+		option.color = color.buttonBack
+		option.textColor = color.buttonFore
+		option.cornerRadius = config.button.radius
+		self.ui:add(option)
+		return option
+	end
+	
 	do -- Start button
-		local start = ui.Button.new()
-		start.size = config.button.size.copy
-		start.font = self.font
-		start.text = 'Start'
-		start.color = color.buttonBack
-		start.textColor = color.buttonFore
-		start.cornerRadius = config.button.radius
+		local start = button 'Start'
 		
 		function start:action()
 			-- scene:enter(require 'scene.game'.new(), '1')
@@ -80,52 +86,38 @@ function Menu:enter()
 				-- end)
 			menu.game:onLevelEnd()
 		end
-		self.ui:add(start)
 	end
 	
 	do -- Levels button
-		local levels = ui.Button.new()
-		levels.size = config.button.size.copy
-		levels.font = self.font
-		levels.text = 'Levels'
-		levels.color = color.buttonBack
-		levels.textColor = color.buttonFore
-		levels.cornerRadius = config.button.radius
+		local levels = button 'Levels'
 		
 		function levels:action()
-			
+			pushLevels()
 		end
-		self.ui:add(levels)
 	end
 	
 	do -- Settings button
-		local settings = ui.Button.new()
-		settings.size = config.button.size.copy
-		settings.font = self.font
-		settings.text = 'Settings'
-		settings.color = color.buttonBack
-		settings.textColor = color.buttonFore
-		settings.cornerRadius = config.button.radius
+		local settings = button 'Settings'
 		
 		function settings:action()
-			
+			pushSettings()
 		end
-		self.ui:add(settings)
+	end
+	
+	do -- Editor button
+		local settings = button 'Editor'
+		
+		function settings:action()
+			scene:push(require 'scene.editor'.new())
+		end
 	end
 	
 	if not WEB then -- Exit button
-		local exit = ui.Button.new()
-		exit.size = config.button.size.copy
-		exit.font = self.font
-		exit.text = 'Exit'
-		exit.color = color.buttonBack
-		exit.textColor = color.buttonFore
-		exit.cornerRadius = config.button.radius
+		local exit = button 'Exit'
 		
 		function exit:action()
 			love.event.quit()
 		end
-		self.ui:add(exit)
 	end
 	
 	self:resize(love.graphics.getDimensions() as (integer, integer))

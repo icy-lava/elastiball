@@ -1,6 +1,7 @@
 return {
 	particle = {
-		scaleToUnit = 1 / 512
+		scaleToUnit = 1 / 512,
+		enabled = true,
 	},
 	reticle = {
 		radius = 12,
@@ -8,6 +9,9 @@ return {
 	},
 	button = {
 		size = vec2(280, 72),
+		levelSize = vec2(100, 100),
+		settingsSize = vec2(320, 60),
+		pauseSize = vec2(360, 72),
 		radius = 12,
 		spacing = 24,
 		pad = 48,

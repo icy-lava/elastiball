@@ -234,6 +234,9 @@ function Editor:doSave(filename: string)
 	if filename and filename ~= '' then
 		local data = level.encode(self.data)
 		local filepath = '../../asset/level/' .. filename .. '.json'
+		if not cli.dev then
+			filepath = filename .. '.json'
+		end
 		local stream = io.open(filepath, 'wb')
 		if stream then
 			stream:write(data)
@@ -251,6 +254,9 @@ end
 function Editor:doOpen(filename: string)
 	if filename and filename ~= '' then
 		local filepath = '../../asset/level/' .. filename .. '.json'
+		if not cli.dev then
+			filepath = filename .. '.json'
+		end
 		local stream = io.open(filepath, 'rb')
 		if stream then
 			local data = stream:read()
@@ -835,6 +841,10 @@ function Editor:keypressed(key: string)
 		self.camera:setPos(self.data.levelEnd.x, self.data.levelEnd.y)
 		self.camera:setZoom(1)
 		return
+	end
+	
+	if key == 'escape' and #scene._scenes > 1 then
+		scene:pop()
 	end
 end
 

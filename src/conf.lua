@@ -66,6 +66,15 @@ function love.load()
 	function gotoMenu()
 		scene:enter(require 'scene.menu'.new())
 	end
+	function pushLevels()
+		scene:push(require 'scene.levels'.new())
+	end
+	function pushSettings()
+		scene:push(require 'scene.settings'.new())
+	end
+	function pushPause()
+		scene:push(require 'scene.pause'.new())
+	end
 	cam11 = require 'cam11'
 	scene:hook {
 		exclude = {

@@ -3,6 +3,15 @@ require 'global'
 global function gotoMenu()
 	
 end
+global function pushLevels()
+	
+end
+global function pushSettings()
+	
+end
+global function pushPause()
+	
+end
 global cam11 = require 'cam11'
 global cargo = require 'cargo'
 global record asset
