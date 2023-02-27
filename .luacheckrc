@@ -3,6 +3,7 @@ ignore = {"611"}
 globals = {
 	'util',
 	'cargo',
+	'appleCake',
 	'asset',
 	'color',
 	'gotoMenu',

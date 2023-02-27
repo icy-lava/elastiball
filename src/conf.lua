@@ -1,9 +1,11 @@
-if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
-	require("lldebugger").start()
-end
-
 require 'love.joystick'
 require 'global'
+
+function love.quit()
+	if appleCake then
+		appleCake.endSession()
+	end
+end
 
 function love.conf(t)
 	t.identity = 'il-love-jam-2023'
@@ -62,20 +64,32 @@ function love.load()
 			}
 		},
 	}
+	
+	local profileAlphaImage = appleCake.profile('alpha-image')
 	asset.alpha_image()
+	profileAlphaImage:stop()
+	
 	function gotoMenu()
 		scene:enter(require 'scene.menu'.new())
 	end
+	
 	function pushLevels()
 		scene:push(require 'scene.levels'.new())
 	end
+	
 	function pushSettings()
 		scene:push(require 'scene.settings'.new())
 	end
+	
 	function pushPause()
 		scene:push(require 'scene.pause'.new())
 	end
+	
+	local profileCam11 = appleCake.profile('cam11')
 	cam11 = require 'cam11'
+	profileCam11:stop()
+	
+	local profileSceneHook = appleCake.profile('scene:hook')
 	scene:hook {
 		exclude = {
 			'load',
@@ -85,16 +99,21 @@ function love.load()
 			'resize',
 		}
 	}
+	profileSceneHook:stop()
+	
+	local profileSceneEnter = appleCake.profile('scene:enter')
 	if cli.editor then
 		scene:enter(require 'scene.editor'.new())
 	else
 		scene:enter(require 'scene.menu'.new())
 	end
+	profileSceneEnter:stop()
 end
 
 local lastWidth, lastHeight
 function love.resize(width, height)
 	if lastWidth ~= width or lastHeight ~= height then
+		appleCake.mark('resize', 'p', {width = width, height = height})
 		lastWidth, lastHeight = width, height
 		scene:emit('resize', width, height)
 	end
@@ -127,8 +146,24 @@ function love.keyreleased(...)
 	end
 end
 
+function love.draw()
+	scene:emit('draw')
+end
+
+local profileEvent
+local profileUpdate
+local profileSubUpdate
+local profileDraw
+local profilePresent
+local profileSleep
 function love.run()
+	appleCake = require 'AppleCake'(cli.dev)
+	appleCake.setBuffer(cli.dev)
+	appleCake.enable('profile')
+	appleCake.beginSession(nil, 'il-love-jam-2023')
+	local profileLoad = appleCake.profile('load')
 	if love.load then love.load(love.arg.parseGameArguments(arg), arg) end
+	profileLoad:stop()
 
 	-- We don't want the first frame's dt to include time taken by love.load.
 	if love.timer then love.timer.step() end
@@ -141,16 +176,23 @@ function love.run()
 		util.mouseRel = vec2()
 		-- Process events.
 		if love.event then
+			appleCake.countMemory()
+			profileEvent = appleCake.profile('event-loop', nil, profileEvent)
 			love.event.pump()
 			for name, a,b,c,d,e,f in love.event.poll() do
 				if name == "quit" then
 					if not love.quit or not love.quit() then
+						profileEvent:stop()
+						appleCake.mark 'quit-event'
 						return a or 0
 					end
 				end
 				love.handlers[name](a,b,c,d,e,f)
 			end
+			profileEvent:stop()
 		end
+		
+		appleCake.countMemory()
 
 		-- Update dt, as we'll be passing it to update
 		if love.timer then dt = dt + love.timer.step() end
@@ -158,24 +200,40 @@ function love.run()
 		dt = math.min(dt, 0.1)
 
 		-- Call update and draw
-		if love.update then
-			local updated = false
+		if dt >= FRAME_TIME then
+			profileUpdate = appleCake.profile('update', nil, profileUpdate)
 			while dt >= FRAME_TIME do
+				profileSubUpdate = appleCake.profile('sub-update', nil, profileSubUpdate)
 				love.update(FRAME_TIME)
 				dt = dt - FRAME_TIME
-				updated = true
 				util.mouseRel = vec2()
+				profileSubUpdate:stop()
 			end
+			profileUpdate:stop()
+			appleCake.countMemory()
 			
-			if updated and love.graphics and love.graphics.isActive() then
+			if love.graphics.isActive() then
+				profileDraw = appleCake.profile('draw', nil, profileDraw)
+				
 				love.graphics.origin()
-	
 				scene:emit('draw')
+				profileDraw.args = love.graphics.getStats()
+				
+				profileDraw:stop()
+				
+				appleCake.countMemory()
 	
+				profilePresent = appleCake.profile('present', nil, profileDraw)
 				love.graphics.present()
+				profilePresent:stop()
+				appleCake.countMemory()
 			end
 		end
 
-		if love.timer then love.timer.sleep(0.002) end
+		if love.timer and love.timer.getAverageDelta() < FRAME_TIME * 2 then
+			profileSleep = appleCake.profile('sleep', nil, profileSleep)
+			love.timer.sleep(0.002)
+			profileSleep:stop()
+		end
 	end
 end

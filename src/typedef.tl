@@ -175,7 +175,7 @@ local record comp
 	type Opacity = number
 	type Particles = {love.graphics.ParticleSystem}
 	type Pinned = boolean
-	type Polygon = {vec2}
+	type Polygon = {number}
 	type Pos = vec2
 	type Scale = number
 	type Solids = {shapes.Shape}

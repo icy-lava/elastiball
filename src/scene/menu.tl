@@ -54,8 +54,8 @@ function Menu:enter()
 	self.game.hadInput = true
 	
 	local particles = util.findSystemInstance(self.game.world.systems, require 'system.update_particles')
-	for _ = 1, 240 do
-		particles:update(1 / 60)
+	for _ = 1, 180 do
+		particles:update(1 / 15)
 	end
 	
 	local menu = self
@@ -104,7 +104,7 @@ function Menu:enter()
 		end
 	end
 	
-	do -- Editor button
+	if not WEB then -- Editor button
 		local settings = button 'Editor'
 		
 		function settings:action()

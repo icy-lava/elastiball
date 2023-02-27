@@ -1,4 +1,5 @@
 return function(entity: typedef.FullEntity)
+	love.graphics.push 'all'
 	local pos = entity.pos
 	local opacity = entity.opacity or 1
 	local scale = entity.scale or 1
@@ -13,8 +14,11 @@ return function(entity: typedef.FullEntity)
 		love.graphics.setColor(color.withAlpha(color.target, opacity * 0.75))
 		love.graphics.setLineWidth(5)
 		love.graphics.circle('line', tpos.x, tpos.y, 36 --[[ * scale]], 32)
-		local scale = config.particle.scaleToUnit * 64 * 2
-		love.graphics.setColor(color.withAlpha(color.target, opacity * 0.5))
+		local scale = config.particle.scaleToUnit * 56 * 2
+		love.graphics.setColor(color.withAlpha(color.target, opacity * 0.25))
+		util.drawCentered(asset.alpha_image.faded as love.graphics.Drawable, tpos.x, tpos.y, 0, scale, scale)
+		love.graphics.setBlendMode('add')
 		util.drawCentered(asset.alpha_image.faded as love.graphics.Drawable, tpos.x, tpos.y, 0, scale, scale)
 	end
+	love.graphics.pop()
 end

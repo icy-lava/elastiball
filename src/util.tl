@@ -75,17 +75,16 @@ function util.circleCorner(radius: number, v1: vec2, v2: vec2, v3: vec2): {vec2}
 	return points
 end
 
-function util.roundedPoly(radius: number, points: {vec2})
-	local coords: {number} = {}
+function util.roundedPoly(radius: number, points: {vec2}): {vec2}
+	local newPoints: {vec2} = {}
 	local pcount = #points
 	for i = 0, pcount - 1 do
 		local p1, p2, p3 = points[i + 1], points[(i + 1) % pcount + 1], points[(i + 2) % pcount + 1]
 		for _, p in ipairs(util.circleCorner(radius, p1, p2, p3)) do
-			table.insert(coords, p.x)
-			table.insert(coords, p.y)
+			table.insert(newPoints, p)
 		end
 	end
-	love.graphics.polygon('fill', coords)
+	return newPoints
 end
 
 function util.crect(mode: love.graphics.DrawMode, x: number, y: number, width: number, height: number, round: number)

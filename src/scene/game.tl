@@ -422,15 +422,18 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	do -- Initialize solids
 		for _, solid in pairs(levelData.solids) do
 			local coords: {number} = {}
-			local vecs: {vec2} = {}
 			for _, pos in ipairs(solid.points) do
 				table.insert(coords, pos.x)
 				table.insert(coords, pos.y)
-				table.insert(vecs, pos.copy)
+			end
+			local rcoords: {number} = {}
+			for _, pos in ipairs(util.roundedPoly(config.solid.cornerRadius, solid.points)) do
+				table.insert(rcoords, pos.x)
+				table.insert(rcoords, pos.y)
 			end
 			local entity <total>: typedef.SolidEntity = {
 				solids = {shapes.newPolygonShape(table.unpack(coords))},
-				polygon = vecs,
+				polygon = rcoords,
 				drawables = {require 'draw.solid'},
 			}
 			self.world:addEntity(entity as table)

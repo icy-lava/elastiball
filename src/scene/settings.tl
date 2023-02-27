@@ -103,13 +103,13 @@ function Settings:enter(prev: Menu)
 		end
 	end
 	
-	do -- Refresh input
-		local setting = button('Refresh input')
+	-- do -- Refresh input
+	-- 	local setting = button('Refresh input')
 		
-		function setting:action()
-			util.resetBaton()
-		end
-	end
+	-- 	function setting:action()
+	-- 		util.resetBaton()
+	-- 	end
+	-- end
 	
 	do -- Back button
 		local backButton = button 'Back'
