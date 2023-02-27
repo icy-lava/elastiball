@@ -149,6 +149,8 @@ function Pause:enter(prev: Game)
 	
 	local mpos = self.ui.buttons[1].pos + self.ui.buttons[1].size / 2
 	love.mouse.setPosition(mpos.x, mpos.y)
+	
+	prev:pauseMusic()
 end
 
 function Pause:mousepressed(...)

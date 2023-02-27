@@ -20,4 +20,5 @@ global record asset
 	level: {string:level.Data}
 	font: {string:cargo.FontFunc}
 	alpha_image: {string:love.graphics.Image}
+	sound: {string:love.audio.Source}
 end

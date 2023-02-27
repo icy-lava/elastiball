@@ -8,6 +8,7 @@ local record Game
 	input: baton.Player
 	hadInput: boolean
 	inputHelpOpacity: number
+	music: love.audio.Source
 	
 	player: typedef.PlayerEntity
 	
@@ -26,6 +27,30 @@ Game.__index = Game
 
 function Game.new(): Game
 	return setmetatable({}, Game)
+end
+
+function Game:resumeMusic()
+	local vol = {value = self.music:getVolume()}
+	self.music:setLooping(true)
+	self.music:play()
+	flux.to(vol, 0.5, {value = 1})
+	:onupdate(function()
+		self.music:setVolume(vol.value)
+	end)
+	:ease 'quadinout'
+end
+
+function Game:pauseMusic()
+	local vol = {value = self.music:getVolume()}
+	self.music:play()
+	flux.to(vol, 0.5, {value = 0})
+	:ease 'quadinout'
+	:onupdate(function()
+		self.music:setVolume(vol.value)
+	end)
+	:oncomplete(function()
+		self.music:pause()
+	end)
 end
 
 function Game:getLevelTime(): number
@@ -114,6 +139,22 @@ function Game:onLevelEnd()
 		stats.bestTimes[self.levelName] = math.min(time, stats.bestTimes[self.levelName] or math.huge)
 	end
 	
+	do -- Sound delayed
+		self.flux:to({}, 0.25, {})
+		:oncomplete(function()
+			asset.sound.portal:play()
+		end)
+	end
+	
+	do -- Music fade
+		local vol = {value = self.music:getVolume()}
+		flux.to(vol, 1.5, {value = math.min(0.5, vol.value)})
+		:ease 'quadinout'
+		:onupdate(function()
+			self.music:setVolume(vol.value)
+		end)
+	end
+	
 	do -- Opacity tween
 		self.player.opacity = self.player.opacity or 1
 		self.player.scale = self.player.scale or 1
@@ -153,6 +194,16 @@ function Game:onLevelEnd()
 			:after(0.25, {})
 			:oncomplete(function()
 				self:nextLevel()
+			end)
+	end
+	
+	do -- Noise tween
+		asset.sound.noise:setVolume(1)
+		local fade = {value = 1}
+		self.flux:to(fade, 1.75, {value = 0})
+			:ease 'quadout'
+			:onupdate(function()
+				asset.sound.noise:setVolume(fade.value)
 			end)
 	end
 	
@@ -218,6 +269,8 @@ function Game:update(dt: number)
 	camPos = util.damp(0.4, dt, camPos, targetPos)
 	self.camera:setPos(camPos.x, camPos.y)
 	self.cameraZoom = util.damp(0.25, dt, self.cameraZoom, 1 / 1.125 ^ (delta.length2 / 4e5))
+	
+	love.audio.setPosition(camPos.x * 0.001, camPos.y * 0.001, 3000 * 0.001)
 end
 
 function Game:draw()
@@ -593,13 +646,44 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 			end)
 	end
 	
+	do -- Noise tween
+		asset.sound.noise:setVolume(0)
+		local fade = {value = 0}
+		self.flux:to(fade, 2, {value = 1})
+			:ease 'quadinout'
+			:delay(0.5)
+			:onupdate(function()
+				asset.sound.noise:setVolume(fade.value)
+			end)
+	end
+	
 	self.world:refresh()
 	self:resize(gw, gh)
+	asset.sound.noise:setPosition(levelData.levelEnd.x * 0.001, levelData.levelEnd.y * 0.001, 0)
+	asset.sound.noise:setLooping(true)
+	asset.sound.noise:play()
+	self.music = asset.sound.music
+	if self.levelName ~= 'menu' then
+		self:resumeMusic()
+	end
 	-- love.mouse.setRelativeMode(true)
+end
+
+function Game:resume()
+	asset.sound.noise:play()
+	self:resumeMusic()
 end
 
 function Game:leave()
 	-- love.mouse.setRelativeMode(false)
+	asset.sound.noise:pause()
+	-- pauseMusic(self.flux, self.music)
+end
+
+function Game:pause()
+	-- love.mouse.setRelativeMode(false)
+	asset.sound.noise:pause()
+	-- pauseMusic(self.flux, self.music)
 end
 
 function Game:keypressed(key: string)

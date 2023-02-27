@@ -63,11 +63,25 @@ function love.load()
 				end
 			}
 		},
+		sound = cargo.init {
+			dir = 'asset/sound',
+			loaders = WEB and {
+				wav = function(path)
+					return love.audio.newSource(path, 'static')
+				end
+			}
+		}
 	}
+	asset.sound.noise:setLooping(true)
+	love.audio.setDistanceModel('inverse')
 	
-	local profileAlphaImage = appleCake.profile('alpha-image')
+	local profileAlphaImage = appleCake.profile('asset/alpha_image')
 	asset.alpha_image()
 	profileAlphaImage:stop()
+	
+	local profileAssetSound = appleCake.profile('asset/sound')
+	asset.sound()
+	profileAssetSound:stop()
 	
 	function gotoMenu()
 		scene:enter(require 'scene.menu'.new())
@@ -157,9 +171,12 @@ local profileDraw
 local profilePresent
 local profileSleep
 function love.run()
-	appleCake = require 'AppleCake'(cli.dev)
-	appleCake.setBuffer(cli.dev)
-	appleCake.enable('profile')
+	local enableAppleCake = false
+	appleCake = require 'AppleCake'(enableAppleCake)
+	if enableAppleCake then
+		appleCake.setBuffer(true)
+		appleCake.enable('profile')
+	end
 	appleCake.beginSession(nil, 'il-love-jam-2023')
 	local profileLoad = appleCake.profile('load')
 	if love.load then love.load(love.arg.parseGameArguments(arg), arg) end
@@ -198,7 +215,9 @@ function love.run()
 		if love.timer then dt = dt + love.timer.step() end
 		-- dt = love.timer.step()
 		dt = math.min(dt, 0.1)
-
+		
+		flux.update(dt)
+		
 		-- Call update and draw
 		if dt >= FRAME_TIME then
 			profileUpdate = appleCake.profile('update', nil, profileUpdate)
