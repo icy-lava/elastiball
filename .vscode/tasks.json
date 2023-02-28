@@ -31,7 +31,7 @@
 		{
 			"label": "make web",
 			"command": "make",
-			"args": ["love"]
+			"args": ["web"]
 		},
 		{
 			"label": "make assets",
