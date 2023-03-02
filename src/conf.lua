@@ -1,13 +1,16 @@
-require 'love.joystick'
-require 'global'
-
 function love.quit()
 	if appleCake then
 		appleCake.endSession()
+		local saveDir = love.filesystem.getSaveDirectory()
+		local profilePath = saveDir .. '/profile.json'
+		log.info(string.format('saved profile to %q', profilePath))
 	end
 end
 
 function love.conf(t)
+	require 'love.joystick'
+	require 'global'
+	
 	t.identity = 'il-love-jam-2023'
 	t.window.title = 'love jam 2023'
 	
@@ -68,7 +71,10 @@ function love.load()
 			loaders = WEB and {
 				wav = function(path)
 					return love.audio.newSource(path, 'static')
-				end
+				end,
+				ogg = function(path)
+					return love.audio.newSource(path, 'static')
+				end,
 			}
 		}
 	}
@@ -171,11 +177,11 @@ local profileDraw
 local profilePresent
 local profileSleep
 function love.run()
-	local enableAppleCake = false
+	local enableAppleCake = true
 	appleCake = require 'AppleCake'(enableAppleCake)
 	if enableAppleCake then
 		appleCake.setBuffer(true)
-		appleCake.enable('profile')
+		-- appleCake.enable('profile')
 	end
 	appleCake.beginSession(nil, 'il-love-jam-2023')
 	local profileLoad = appleCake.profile('load')
@@ -216,6 +222,9 @@ function love.run()
 		-- dt = love.timer.step()
 		dt = math.min(dt, 0.1)
 		
+		if cli.dev then
+			require('lovebird').update()
+		end
 		flux.update(dt)
 		
 		-- Call update and draw
@@ -249,6 +258,8 @@ function love.run()
 			end
 		end
 
+		if appleCake.flush then appleCake.flush() end
+		
 		if love.timer and love.timer.getAverageDelta() < FRAME_TIME * 2 then
 			profileSleep = appleCake.profile('sleep', nil, profileSleep)
 			love.timer.sleep(0.002)

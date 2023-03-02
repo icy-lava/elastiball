@@ -4,6 +4,7 @@ globals = {
 	'util',
 	'cargo',
 	'appleCake',
+	'flux',
 	'asset',
 	'color',
 	'gotoMenu',
