@@ -101,7 +101,13 @@ global signal = require 'signal'
 global shapes = require 'hc.shapes'
 global typedef = require 'typedef'
 global vivid = require 'vivid'
+global level = require 'level'
+global record asset
+	level: {string:level.Data}
+	font: {string:cargo.FontFunc}
+	alpha_image: {string:love.graphics.Image}
+	sound: {string:love.audio.Source}
+end
 global util = require 'util'
 global color = require 'color'
-global level = require 'level'
 global ui = require 'ui'

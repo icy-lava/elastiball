@@ -44,8 +44,9 @@ end
 function Levels:enter(prev: Menu)
 	self.ui = ui.ButtonSet.new()
 	self.prev = prev
-	self.font = asset.font['Quicksand-SemiBold'](64)
 	self.flux = flux.group()
+	
+	self.font = util.getFont('Quicksand-SemiBold', 64)
 	
 	self.uiOpacity = 0
 	self.flux:to(self, 1, {uiOpacity = 1})
@@ -91,7 +92,7 @@ function Levels:enter(prev: Menu)
 	do -- Back button
 		local backButton = ui.Button.new()
 		backButton.size = config.button.size.copy
-		backButton.font = asset.font['Quicksand-SemiBold'](48)
+		backButton.font = util.getFont('Quicksand-SemiBold', 48)
 		backButton.text = 'Back'
 		backButton.color = color.buttonBack
 		backButton.textColor = color.buttonFore

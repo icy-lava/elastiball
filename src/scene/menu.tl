@@ -30,9 +30,10 @@ end
 
 function Menu:enter()
 	self.ui = ui.ButtonSet.new()
-	self.font = asset.font['Quicksand-SemiBold'](48)
-	self.recordFont = asset.font['Quicksand-SemiBold'](32)
 	self.flux = flux.group()
+	
+	self.font = util.getFont('Quicksand-SemiBold', 48)
+	self.recordFont = util.getFont('Quicksand-SemiBold', 32)
 	
 	if not stats then
 		local _stats <total>: Stats = {

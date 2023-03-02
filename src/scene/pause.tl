@@ -51,8 +51,9 @@ end
 function Pause:enter(prev: Game)
 	self.ui = ui.ButtonSet.new()
 	self.prev = prev
-	self.font = asset.font['Quicksand-SemiBold'](48)
 	self.flux = flux.group()
+	
+	self.font = util.getFont('Quicksand-SemiBold', 48)
 	
 	self.uiOpacity = 0
 	self.flux:to(self, 1, {uiOpacity = 1})

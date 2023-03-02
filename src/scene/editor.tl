@@ -280,9 +280,10 @@ end
 function Editor:enter()
 	self.camera = cam11(0, 0, 1, 0, 0, 0)
 	self.mode = modes[1]
-	self.font = love.graphics.newFont(16)
-	self.bigFont = asset.font['Quicksand-SemiBold'](48)
+	
+	self.font = util.getFont('Quicksand-SemiBold', 16)
 	self.font:setLineHeight(1.25)
+	self.bigFont = util.getFont('Quicksand-SemiBold', 48)
 	
 	local data <total>: level.Data = {
 		points    = {},

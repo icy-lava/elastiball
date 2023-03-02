@@ -20,6 +20,7 @@ local record Game
 	fadeColor: color.RGBA
 	ticks: integer
 	timerFont: love.graphics.Font
+	profile: AppleCake.Profile
 	
 	__index: Game
 end
@@ -27,6 +28,14 @@ Game.__index = Game
 
 function Game.new(): Game
 	return setmetatable({}, Game)
+end
+
+function Game:pushProfile()
+	self.profile = appleCake.profile('scene.game', {levelName = self.levelName}, self.profile)
+end
+
+function Game:popProfile()
+	self.profile:stop()
 end
 
 function Game:resumeMusic()
@@ -368,6 +377,16 @@ function Game:mousepressed(_: integer)
 end
 
 function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
+	local levelData: level.Data
+	if levelInfo is string then
+		self.levelName = levelInfo
+	else
+		levelData = levelInfo
+		self.levelName = 'live'
+	end
+	
+	self:pushProfile()
+	
 	local gw, gh = love.graphics.getDimensions() as (integer, integer)
 	
 	util.resetBaton()
@@ -378,9 +397,11 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	self.cameraZoom = 1
 	self.inputHelpOpacity = 0
 	self.ticks = 0
-	self.timerFont = asset.font['Quicksand-SemiBold'](32)
 	
-	do -- Initialize systems
+	self.timerFont = util.getFont('Quicksand-SemiBold', 32)
+	
+	-- Initialize systems
+	util.profile('initialize-systems', nil, function()
 		self.world:addSystem(util.instance(require 'system.point'))
 		self.world:addSystem(util.instance(require 'system.attractor'))
 		self.world:addSystem(util.instance(require 'system.solids'))
@@ -395,25 +416,22 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 		self.world:addSystem(util.instance(require 'system.draw_particles'))
 		-- self.world:addSystem(util.instance(require 'system.draw_polygon'))
 		self.world:addSystem(util.instance(require 'system.drawable'))
-	end
+	end)
 	
-	local levelData: level.Data
-	do -- Load level data
-		if levelInfo is string then
-			self.levelName = levelInfo
+	-- Load level data
+	if self.levelName ~= 'live' then
+		util.profile('load-level', {levelName = self.levelName}, function()
 			stats.runTimes[self.levelName] = 0
 			local path = util.levelNameToPath(self.levelName)
 			local levelString = love.filesystem.read(path)
 			levelData = level.decode(levelString)
-		else
-			levelData = levelInfo
-			self.levelName = 'live'
-		end
-		self.levelData = levelData
+		end)
 	end
+	self.levelData = levelData
 	
+	-- Initialize points
 	local points: {level.Data.UID:{string:any}} = {}
-	do -- Initialize points
+	util.profile('initialize-points', nil, function()
 		for uid, point in pairs(levelData.points) do
 			local entity <total>: typedef.PointEntity = {
 				pos = point.pos.copy,
@@ -426,9 +444,10 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 			self.world:addEntity(entity as table)
 			points[uid] = entity
 		end
-	end
+	end)
 	
-	do -- Initialize safezones
+	-- Initialize safezones
+	util.profile('initialize-safezones', nil, function()
 		-- It's probably OK to share the signal between multiple safezones
 		local sig: signal<string> = signal.new()
 		
@@ -450,9 +469,9 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 			}
 			self.world:addEntity(entity as table)
 		end
-	end
+	end)
 	
-	do -- Initialize links
+	util.profile('initialize-links', nil, function()
 		for _, link in pairs(levelData.links) do
 			local a, b = points[link.a] as typedef.comp.Linked, points[link.b] as typedef.comp.Linked
 			local linc <total>: typedef.comp.Link = {
@@ -470,9 +489,10 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 			}
 			self.world:addEntity(entity as table)
 		end
-	end
+	end)
 	
-	do -- Initialize solids
+	-- Initialize solids
+	util.profile('initialize-solids', nil, function()
 		for _, solid in pairs(levelData.solids) do
 			local coords: {number} = {}
 			for _, pos in ipairs(solid.points) do
@@ -491,9 +511,10 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 			}
 			self.world:addEntity(entity as table)
 		end
-	end
+	end)
 	
-	do -- Initialize end portal
+	-- Initialize end portal
+	util.profile('initialize-portal', nil, function()
 		local pos = levelData.levelEnd
 		local sig: signal<string> = signal.new()
 		
@@ -582,11 +603,11 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 		end)
 		
 		self.world:addEntity(entity as table)
-	end
+	end)
 	
-	do -- Intialize player
+	-- Intialize player
+	util.profile('initialize-player', nil, function()
 		local particles: {love.graphics.ParticleSystem} = {}
-		
 		do -- Particle system 1
 			local ps = love.graphics.newParticleSystem(asset.alpha_image.circle)
 			ps:setParticleLifetime(0.4, 0.5)
@@ -628,7 +649,7 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 		self.world:addEntity(entity as table)
 		self.camera = cam11(pos.x, pos.y, 1, 0, 0, 0, gw, gh)
 		self.player = entity
-	end
+	end)
 	
 	do -- Fade in tween
 		local tween = {value = 1}
@@ -666,21 +687,23 @@ function Game:enter(_: roomy.Scene, levelInfo: string | level.Data)
 	if self.levelName ~= 'menu' then
 		self:resumeMusic()
 	end
-	-- love.mouse.setRelativeMode(true)
 end
 
 function Game:resume()
 	asset.sound.noise:play()
 	self:resumeMusic()
+	self:pushProfile()
 end
 
 function Game:leave()
+	self:popProfile()
 	-- love.mouse.setRelativeMode(false)
 	asset.sound.noise:pause()
 	-- pauseMusic(self.flux, self.music)
 end
 
 function Game:pause()
+	self:popProfile()
 	-- love.mouse.setRelativeMode(false)
 	asset.sound.noise:pause()
 	-- pauseMusic(self.flux, self.music)

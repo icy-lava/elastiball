@@ -62,7 +62,7 @@ function love.load()
 					id:mapPixel(function(_, _, r)
 						return 1, 1, 1, r
 					end)
-					return assert(love.graphics.newImage(id), {mipmaps = true})
+					return assert(love.graphics.newImage(id, {mipmaps = true}))
 				end
 			}
 		},
@@ -81,13 +81,13 @@ function love.load()
 	asset.sound.noise:setLooping(true)
 	love.audio.setDistanceModel('inverse')
 	
-	local profileAlphaImage = appleCake.profile('asset/alpha_image')
-	asset.alpha_image()
-	profileAlphaImage:stop()
+	util.profile('asset/alpha_image', nil, function()
+		asset.alpha_image()
+	end)
 	
-	local profileAssetSound = appleCake.profile('asset/sound')
-	asset.sound()
-	profileAssetSound:stop()
+	util.profile('asset/sound', nil, function()
+		asset.sound()
+	end)
 	
 	function gotoMenu()
 		scene:enter(require 'scene.menu'.new())
@@ -105,29 +105,29 @@ function love.load()
 		scene:push(require 'scene.pause'.new())
 	end
 	
-	local profileCam11 = appleCake.profile('cam11')
-	cam11 = require 'cam11'
-	profileCam11:stop()
+	util.profile('cam11', nil, function()
+		cam11 = require 'cam11'
+	end)
 	
-	local profileSceneHook = appleCake.profile('scene:hook')
-	scene:hook {
-		exclude = {
-			'load',
-			'draw',
-			'keypressed',
-			'keyreleased',
-			'resize',
+	util.profile('scene:hook', nil, function()
+		scene:hook {
+			exclude = {
+				'load',
+				'draw',
+				'keypressed',
+				'keyreleased',
+				'resize',
+			}
 		}
-	}
-	profileSceneHook:stop()
+	end)
 	
-	local profileSceneEnter = appleCake.profile('scene:enter')
-	if cli.editor then
-		scene:enter(require 'scene.editor'.new())
-	else
-		scene:enter(require 'scene.menu'.new())
-	end
-	profileSceneEnter:stop()
+	util.profile('scene:enter', nil, function()
+		if cli.editor then
+			scene:enter(require 'scene.editor'.new())
+		else
+			scene:enter(require 'scene.menu'.new())
+		end
+	end)
 end
 
 local lastWidth, lastHeight
@@ -171,6 +171,7 @@ function love.draw()
 end
 
 local profileEvent
+local profileLovebird
 local profileUpdate
 local profileSubUpdate
 local profileDraw
@@ -184,9 +185,14 @@ function love.run()
 		-- appleCake.enable('profile')
 	end
 	appleCake.beginSession(nil, 'il-love-jam-2023')
-	local profileLoad = appleCake.profile('load')
-	if love.load then love.load(love.arg.parseGameArguments(arg), arg) end
-	profileLoad:stop()
+	
+	appleCake.countMemory()
+	
+	if love.load then
+		util.profile('load', nil, function()
+			love.load(love.arg.parseGameArguments(arg), arg)
+		end)
+	end
 
 	-- We don't want the first frame's dt to include time taken by love.load.
 	if love.timer then love.timer.step() end
@@ -223,7 +229,9 @@ function love.run()
 		dt = math.min(dt, 0.1)
 		
 		if cli.dev then
+			profileLovebird = appleCake.profile('lovebird.update', nil, profileLovebird)
 			require('lovebird').update()
+			profileLovebird:stop()
 		end
 		flux.update(dt)
 		

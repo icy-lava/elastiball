@@ -44,8 +44,9 @@ end
 function Settings:enter(prev: Menu)
 	self.ui = ui.ButtonSet.new()
 	self.prev = prev
-	self.font = asset.font['Quicksand-SemiBold'](32)
 	self.flux = flux.group()
+	
+	self.font = util.getFont('Quicksand-SemiBold', 32)
 	
 	self.uiOpacity = 0
 	self.flux:to(self, 1, {uiOpacity = 1})
@@ -113,7 +114,7 @@ function Settings:enter(prev: Menu)
 	
 	do -- Back button
 		local backButton = button 'Back'
-		backButton.font = asset.font['Quicksand-SemiBold'](48)
+		backButton.font = util.getFont('Quicksand-SemiBold', 48)
 		backButton.size = config.button.size.copy
 		
 		function backButton:action()

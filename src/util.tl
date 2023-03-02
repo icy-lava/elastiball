@@ -284,4 +284,43 @@ function util.merge<K, V>(a: {K:V}, b: {K:V}): {K:V}
 	return result
 end
 
+function util.profile(name: string, args: AppleCake.Args, func: function())
+	appleCake.countMemory()
+	local profile = appleCake.profile(name, args)
+	func()
+	profile:stop()
+	appleCake.countMemory()
+end
+
+local fontLRU: {{string, integer, love.graphics.Font}} = {}
+local fontLRUMax = 5
+function util.getFont(name: string, size: integer): love.graphics.Font
+	local result: love.graphics.Font
+	local resultI: integer
+	for i, info in ipairs(fontLRU) do
+		if info[1] == name and info[2] == size then
+			result = info[3]
+			resultI = i
+			break
+		end
+	end
+	
+	-- Found in cache
+	if result then
+		table.insert(fontLRU, 1, table.remove(fontLRU, resultI))
+		return result
+	end
+	
+	-- Not found in cache
+	util.profile('initialize-font', {name = name, size = size}, function()
+		result = asset.font[name](size)
+	end)
+	table.insert(fontLRU, 1, {name, size, result})
+	for i = #fontLRU, fontLRUMax + 1, -1 do
+		fontLRU[i] = nil
+	end
+	
+	return result
+end
+
 return util
