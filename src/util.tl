@@ -292,6 +292,23 @@ function util.profile(name: string, args: AppleCake.Args, func: function())
 	appleCake.countMemory()
 end
 
+function util.makeSystemProfiled<T>(system: tiny.System<T>, name: string, args: AppleCake.Args)
+	local preProcess = system.preProcess
+	local postProcess = system.postProcess
+	function system:preProcess(dt: number)
+		;(self as table)._profile = appleCake.profile(name, args, (self as table)._profile as AppleCake.Profile)
+		if preProcess then
+			preProcess(self, dt)
+		end
+	end
+	function system:postProcess(dt: number)
+		if postProcess then
+			postProcess(self, dt)
+		end
+		;((self as table)._profile as AppleCake.Profile):stop()
+	end
+end
+
 local fontLRU: {{string, integer, love.graphics.Font}} = {}
 local fontLRUMax = 5
 function util.getFont(name: string, size: integer): love.graphics.Font

@@ -5,9 +5,7 @@ function system:compare(a: typedef.DrawableEntity, b: typedef.DrawableEntity): b
 	return la < lb
 end
 
-local profile: AppleCake.Profile
 function system:preProcess(_: number)
-	profile = appleCake.profile('system.drawable', nil, profile)
 	love.graphics.push 'all'
 end
 
@@ -27,7 +25,8 @@ end
 
 function system:postProcess(_: number)
 	love.graphics.pop()
-	profile:stop()
 end
+
+util.makeSystemProfiled(system, 'system.drawable')
 
 return system

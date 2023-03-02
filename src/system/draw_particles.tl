@@ -1,8 +1,6 @@
 local system = util.drawSystem(typedef.ParticleSystemEntity)
 
-local profile: AppleCake.Profile
 function system:preProcess(_: number)
-	profile = appleCake.profile('system.draw_particles', nil, profile)
 	love.graphics.push 'all'
 end
 
@@ -17,7 +15,8 @@ end
 
 function system:postProcess(_: number)
 	love.graphics.pop()
-	profile:stop()
 end
+
+util.makeSystemProfiled(system, 'system.draw_particles')
 
 return system

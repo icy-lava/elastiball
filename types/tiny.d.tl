@@ -73,9 +73,9 @@ local record tiny
 		postWrap: function(self: System, dt: number)
 		
 		-- Processing system
-		preProcess: function(self: System, dt: number)
+		preProcess: function<E>(self: System<E>, dt: number)
 		process: function<E>(self: System<E>, entity: E, dt: number)
-		postProcess: function(self: System, dt: number)
+		postProcess: function<E>(self: System<E>, dt: number)
 		
 		-- Sorted system
 		compare: function<E>(self: System<E>, a: E, b: E): boolean

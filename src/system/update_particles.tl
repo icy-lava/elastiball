@@ -25,8 +25,9 @@ function system:process(entity: typedef.ParticleSystemEntity, dt: number)
 end
 
 function system:postProcess(_: number)
-	profile:stop()
 	appleCake.counter('particle-count', {total = particleCount}, counter)
 end
+
+util.makeSystemProfiled(system, 'system.update_particles')
 
 return system

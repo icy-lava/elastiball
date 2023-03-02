@@ -1,10 +1,5 @@
 local system = util.processingSystem(typedef.LinkEntity)
 
-local profile: AppleCake.Profile
-function system:preProcess(_: number)
-	profile = appleCake.profile('system.link', nil, profile)
-end
-
 function system:process(entity: typedef.LinkEntity, dt: number)
 	local link = entity.link
 	
@@ -48,8 +43,6 @@ function system:process(entity: typedef.LinkEntity, dt: number)
 	b.pos = newBPos
 end
 
-function system:postProcess(_: number)
-	profile:stop()
-end
+util.makeSystemProfiled(system, 'system.link')
 
 return system

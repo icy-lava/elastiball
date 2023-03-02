@@ -3,11 +3,6 @@ local system = util.processingSystem(typedef.VerletEntity)
 local attractorSystem: tiny.System<typedef.AttractorEntity> = require 'system.attractor'
 local solidsSystem: tiny.System<typedef.SolidsEntity> = require 'system.solids'
 
-local profile: AppleCake.Profile
-function system:preProcess(_: number)
-	profile = appleCake.profile('system.verlet', nil, profile)
-end
-
 function system:process(entity: typedef.VerletEntity, dt: number)
 	if not entity.pinned then
 		entity.pos, entity.lastPos = entity.pos * 2 - entity.lastPos, entity.pos
@@ -46,8 +41,6 @@ function system:process(entity: typedef.VerletEntity, dt: number)
 	end
 end
 
-function system:postProcess(_: number)
-	profile:stop()
-end
+util.makeSystemProfiled(system, 'system.verlet')
 
 return system

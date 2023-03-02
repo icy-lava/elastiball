@@ -1,11 +1,6 @@
 local system = util.processingSystem(typedef.InputEntity)
 local pointSystem = require 'system.point'
 
-local profile: AppleCake.Profile
-function system:preProcess(_: number)
-	profile = appleCake.profile('system.input', nil, profile)
-end
-
 function system:process(entity: typedef.InputEntity, dt: number)
 	-- entity.input:update()
 	local move = vec2(entity.input:get 'move') * dt ^ 2 * vec2(300, 100)
@@ -99,8 +94,6 @@ function system:process(entity: typedef.InputEntity, dt: number)
 	end
 end
 
-function system:postProcess(_: number)
-	profile:stop()
-end
+util.makeSystemProfiled(system, 'system.input')
 
 return system
