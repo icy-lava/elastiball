@@ -40,7 +40,7 @@ cd elastiball
 
 sudo apt-get install luarocks love busybox make
 
-luarocks install tl
+sudo luarocks install tl
 
 # For web build:
 npm i love.js
