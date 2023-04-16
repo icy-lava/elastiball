@@ -49,8 +49,8 @@ compile: $(COMPILED_FILES)
 
 assets: build/raw/asset
 build/raw/asset: $(SOURCE_ASSET)
-	mkdir -p build/raw
-	rm -rf build/raw/asset
+	busybox mkdir -p build/raw
+	busybox rm -rf build/raw/asset
 	busybox cp -r asset $@
 
 love: $(ARTIFACT_LOVE)
